@@ -1,0 +1,1 @@
+Shooty shooty bang bang plus is a fast paced, intense shooter game that I made as a fresh project cause i wanted to retry game developement. this will be the only game i will be maintaining for quite a while. check back for more updates, and have fun playing!
