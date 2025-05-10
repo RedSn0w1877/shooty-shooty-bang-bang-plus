@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shooty Shooty Bang Bang PLUS - v4.27</title>
+    <title>Shooty Shooty Bang Bang PLUS - v4.27 (Screen Shake & Polish)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -82,7 +82,7 @@
             background-color: rgba(10, 10, 30, 0.85);
             box-shadow: 0 0 25px rgba(105, 0, 204, 0.7), 0 0 10px rgba(255,255,255,0.2) inset;
             cursor: crosshair;
-            transition: border-color 0.3s ease, transform 0.05s; 
+            transition: border-color 0.3s ease, transform 0.05s; /* Added transform for screen shake */
         }
         body.hell-mode #gameCanvas {
             border-color: #ff3300;
@@ -471,7 +471,7 @@
                     <p>5.3: ssssslightly increased bullet homing strength. Added more stars to the background for a cooler background hehe</p>
                     <p>5.2: added health bar. Added 'Finish Game' button. Adjusted Hell mode (slightly easier) & Normal mode (easier) difficulty. Changed main font to serif.</p>
                     <p>5.1: nerfed bullet homing strength. made Normal mode easier (enemy health/speed, wave length???)</p>
-                    <p>5.0: created shooty shooty bang bang plus. more features, so beautiful and supports creator :D
+                    <p>5.0: created shooty shooty bang bang plus. more features, so beautiful and supports creator :D<p>
                     <p>4.9: moved Aimbot & Changelog buttons for better visibility below playing area field thingy Buttons are now larger.</p>
                     <p>4.8: fixed revive because it would freeze the game.</p>
                     <p>4.7: major major major major visual overhaul! dded animated backgrounds, particle effects, smoother animations, improved UI styling, and enhanced entity designs. player has a directional pointer. projectiles have cool trails</p>
@@ -501,7 +501,7 @@
             <div class="controls-info">
                 <p class="font-semibold mb-0.5 text-lg text-purple-300 game-title-like">Controls:</p>
                 <p><span class="text-orange-300">Player:</span> WASD to Move, Space/Click to Shoot, B for Beam, X for Smash, M for Mouse Aim</p>
-                <p class="mt-0.5 text-xs text-gray-400">Targets hurt on touch!</p>
+                <p class="mt-0.5 text-xs text-gray-400">Beam: 21s, Smash: 37.5s. Targets hurt on touch!</p>
             </div>
 
             <div id="leaderboardContainer" class="hidden">
@@ -777,7 +777,7 @@
             globalPlayerName = playerNameInput.value.trim() || "Player";
             hidePopup(namePopup);
             setTimeout(() => {
-                loadingWelcomeText.textContent = `Welcome to Shooty Shooty Bang Bang PLUS, ${globalPlayerName}!`;
+                loadingWelcomeText.textContent = `Welcome to Shooty Shooty Bang Bang PLUS, ${globalPlayerName}! We're loading your game environment, please wait.`;
                 showPopup(loadingScreen);
                 let progress = 0;
                 const interval = setInterval(() => {
