@@ -1,9 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShootyShooty BangBang - v6.4 (awesomeness update heeheh)</title>
+    <title>ShootyShooty BangBang Plus - v6.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -105,7 +103,7 @@
             border-radius: 0.5rem;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-        #messageBox, #tempPopup, #changelogPopup, #licensePopup, #namePopup, #loadingScreen {
+        #messageBox, #tempPopup, #changelogPopup, #licensePopup, #namePopup, #loadingScreen, #adminPasswordPopup {
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0.95);
             background-color: rgba(20, 20, 50, 0.98);
@@ -131,6 +129,24 @@
             pointer-events: none;
         }
 
+        /* NEW POPUP STYLE */
+        #adminPasswordPopup {
+            box-shadow: 0 0 30px rgba(234, 179, 8, 0.5), 0 5px 20px rgba(0,0,0,0.5); /* Yellow glow for admin */
+            width: 90%; max-width: 500px;
+            border: 2px solid #eab308; /* Yellow border */
+            z-index: 101; /* Above messageBox */
+        }
+        #adminPasswordPopup input {
+            background-color: #1e1e3f; color: #e0e0ff; border: 1px solid #eab308;
+            padding: 0.6rem; border-radius: 0.375rem; margin-right: 0.3rem; font-size: 1rem;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #adminPasswordPopup input:focus {
+            border-color: #fde047; box-shadow: 0 0 8px rgba(253, 224, 71, 0.5), inset 0 1px 3px rgba(0,0,0,0.4); outline: none;
+        }
+        /* END NEW POPUP STYLE */
+
+
         #licensePopup {
             transform: translate(-50%, -150vh) scale(0.8);
             transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease-out;
@@ -146,7 +162,7 @@
 
 
         #messageBox.visible, #tempPopup.visible, #changelogPopup.visible,
-        #licensePopup.visible, #namePopup.visible, #loadingScreen.visible {
+        #licensePopup.visible, #namePopup.visible, #loadingScreen.visible, #adminPasswordPopup.visible {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
             pointer-events: auto;
@@ -245,6 +261,11 @@
             color: #7DF9FF;
             text-shadow: 0 0 8px rgba(125, 249, 255, 0.7);
         }
+        /* NEW: Admin popup title */
+        #adminPasswordPopup .popup-title {
+            color: #fde047;
+            text-shadow: 0 0 8px rgba(253, 224, 71, 0.7);
+        }
         .stage-info {font-size: 1.1rem; font-weight: 600; color: #7DF9FF; text-shadow: 1px 1px 2px #000; margin-bottom: 0.25rem; }
         .game-title {
             text-shadow: 2px 2px 3px #7c2d12;
@@ -253,7 +274,7 @@
              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
              font-size: 1.1rem;
              color: #93c5fd;
-        }
+         }
 
 
         .controls-info { background-color: rgba(30, 30, 70, 0.7); padding: 0.6rem; border-radius: 0.5rem; margin-top: 0.5rem; font-size: 0.75rem; text-align: center; width: 100%; border: 1px solid #4a00e0;}
@@ -366,7 +387,7 @@
     </style>
 </head>
 <body class="select-none">
-    <div id="versionDisplay" class="version-box">V6.2</div>
+    <div id="versionDisplay" class="version-box">V6.4</div>
     <div id="tempPopup" class="hidden"></div>
 
     <div id="licensePopup" class="hidden">
@@ -396,9 +417,22 @@
         </div>
     </div>
 
+    <!-- NEW ADMIN PASSWORD POPUP -->
+    <div id="adminPasswordPopup" class="hidden">
+        <h2 class="popup-title">Admin Access</h2>
+        <p class="mb-4">Enter the password to access admin features.</p>
+        <div class="input-group">
+            <input type="password" id="adminPasswordInput" placeholder="Enter Password" class="w-full sm:w-2/3">
+            <button id="submitAdminPasswordButton" class="button button-godmode mt-2 sm:mt-0 sm:ml-2">Submit</button>
+        </div>
+        <p id="adminPasswordError" class="text-red-400 text-sm mt-2 hidden">Invalid Password!</p>
+        <button id="closeAdminPasswordPopup" class="button-close">&times;</button>
+    </div>
+    <!-- END NEW POPUP -->
+
 
     <div id="mainGameContent" class="hidden"> <div class="game-container p-1 sm:p-2">
-            <h1 class="text-2xl sm:text-3xl font-bold mb-1 text-orange-400 game-title">Shooty Shooty Bang Bang PLUS</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold mb-1 text-orange-400 game-title">ShootyShooty BangBang Plus</h1>
 
             <div class="ui-top-bar">
                 <div id="healthDisplayContainer">
@@ -459,6 +493,7 @@
             <div id="changelogPopup" class="hidden">
                 <h2 class="text-xl font-semibold mb-4 text-center text-amber-300 game-title-like">Changelog</h2>
                 <div id="changelogContent">
+                    <p>6.4: Added password protection to admin controls ('Invincibility', '+100 Health', 'Finish Game'). Admin access is now granted for the entire session after one successful login. Game version updated and title renamed to 'ShootyShooty BangBang Plus'.</p>
                     <p>6.2: fixed enemy health bar display. Added Green (+50HP) and Golden (+150HP) health power-ups cause duh. Enhanced particle effects for explosions and power-up collection. Screen shake on Smash & enemy death >:) </p>
                     <p>6.1: fixed GIP input issue with game control keys. beam attack now correctly uses sigma aimbot at the nearest enemy. refined bullet homing to prevent circling at close distance or whatever</p>
                     <p>6.0: fixed beam auto-aim. improved bullet homing to prevent circling at close range. enemy bullets no longer wrap.</p>
@@ -551,8 +586,15 @@
         const loadingProgressBar = document.getElementById('loadingProgressBar');
         const mainGameContent = document.getElementById('mainGameContent');
 
+        // NEW: Admin Popup Elements
+        const adminPasswordPopup = document.getElementById('adminPasswordPopup');
+        const adminPasswordInput = document.getElementById('adminPasswordInput');
+        const submitAdminPasswordButton = document.getElementById('submitAdminPasswordButton');
+        const closeAdminPasswordPopup = document.getElementById('closeAdminPasswordPopup');
+        const adminPasswordError = document.getElementById('adminPasswordError');
 
-        const GAME_VERSION = "v4.25";
+
+        const GAME_VERSION = "v6.4";
         let CANVAS_WIDTH = 800;
         let CANVAS_HEIGHT = 600;
         const PLAYER_WIDTH = 30;
@@ -561,7 +603,7 @@
         const PROJECTILE_HEIGHT = 5;
         const ENEMY_PROJECTILE_WIDTH = 8;
         const ENEMY_PROJECTILE_HEIGHT = 8;
-        const POWERUP_SIZE = 30;
+        const POWERUP_SIZE = 25;
         const BEAM_THICKNESS = 25;
         const TARGET_SIZE_MIN = 20;
         const TARGET_SIZE_MAX = 35;
@@ -610,6 +652,11 @@
         let nextHellSpawnTime = 0;
         let globalPlayerName = "Player";
 
+        // NEW: Admin Password State
+        let pendingAdminAction = null;
+        const ADMIN_PASSWORD = "admin123"; // <-- YOU CAN CHANGE THE PASSWORD HERE
+        let isAdminAccessGranted = false; // <-- NEW: Tracks if admin is unlocked
+
         const messageBox = document.getElementById('messageBox');
         const messageText = document.getElementById('messageText');
         const codeInputSection = document.getElementById('codeInputSection');
@@ -649,7 +696,10 @@
 
         function isGameEffectivelyPaused() {
             if (!mainGameContent.classList.contains('hidden')) {
-                 return messageBox.classList.contains('visible') || changelogPopup.classList.contains('visible');
+                 // UPDATED: Added adminPasswordPopup
+                 return messageBox.classList.contains('visible') ||
+                        changelogPopup.classList.contains('visible') ||
+                        adminPasswordPopup.classList.contains('visible');
             }
             return true;
         }
@@ -686,9 +736,11 @@
         }
 
         window.addEventListener('keydown', (e) => {
+            // UPDATED: Added adminPasswordInput
             const activePopupInput = document.activeElement === licenseKeyInput ||
-                                   document.activeElement === playerNameInput ||
-                                   (document.activeElement === codeInput && !codeInputSection.classList.contains('hidden'));
+                                     document.activeElement === playerNameInput ||
+                                     (document.activeElement === codeInput && !codeInputSection.classList.contains('hidden')) ||
+                                     document.activeElement === adminPasswordInput;
 
             if (activePopupInput) {
                 if (e.code === 'Enter') {
@@ -696,6 +748,7 @@
                     if (document.activeElement === licenseKeyInput) submitLicenseKeyButton.click();
                     else if (document.activeElement === playerNameInput) submitPlayerNameButton.click();
                     else if (document.activeElement === codeInput) submitCodeButton.click();
+                    else if (document.activeElement === adminPasswordInput) submitAdminPasswordButton.click(); // NEW
                 }
                 return;
             }
@@ -704,6 +757,13 @@
             if (e.code === 'Escape') {
                 if (changelogPopup.classList.contains('visible')) {
                     hidePopup(changelogPopup); currentPopupAction = null; return;
+                }
+                // NEW: Handle admin popup escape
+                if (adminPasswordPopup.classList.contains('visible')) {
+                    hidePopup(adminPasswordPopup);
+                    currentPopupAction = null;
+                    pendingAdminAction = null;
+                    return;
                 }
                 if (messageBox.classList.contains('visible')) {
                     if (currentPopupAction === 'revive_code_input' || currentPopupAction === 'revive_failed') {
@@ -720,9 +780,9 @@
 
             if (isGameEffectivelyPaused() && !mainGameContent.classList.contains('hidden')) {
                  if (e.code === 'Space' || e.code.startsWith('Arrow') || ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyB', 'KeyX', 'KeyM'].includes(e.code)) {
-                    e.preventDefault();
-                }
-                return;
+                     e.preventDefault();
+                 }
+                 return;
             } else if (licensePopup.classList.contains('visible') || namePopup.classList.contains('visible') || loadingScreen.classList.contains('visible')) {
                 if (['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyX', 'KeyM'].includes(e.code)) {
                     e.preventDefault();
@@ -756,7 +816,7 @@
         }
 
         submitLicenseKeyButton.addEventListener('click', () => {
-            if (licenseKeyInput.value.trim() === "64446644" "Nathan266767") {
+            if (licenseKeyInput.value.trim() === "64446644") {
                 licenseErrorText.classList.add('hidden');
                 licenseKeyInput.classList.remove('input-error');
                 hidePopup(licensePopup);
@@ -777,7 +837,7 @@
             globalPlayerName = playerNameInput.value.trim() || "Player";
             hidePopup(namePopup);
             setTimeout(() => {
-                loadingWelcomeText.textContent = `Welcome to Shooty Shooty Bang Bang PLUS, ${globalPlayerName}! We're loading your game environment, please wait.`;
+                loadingWelcomeText.textContent = `Welcome to ShootyShooty BangBang Plus, ${globalPlayerName}! We're loading your game environment, please wait.`;
                 showPopup(loadingScreen);
                 let progress = 0;
                 const interval = setInterval(() => {
@@ -788,7 +848,7 @@
                         hidePopup(loadingScreen);
                         setTimeout(startGame, 300);
                     }
-                }, 100);
+                }, 100); // Increased loading time slightly
             }, 300);
         });
 
@@ -818,40 +878,113 @@
             showPopup(changelogPopup); currentPopupAction = 'changelog';
         });
 
+        // --- NEW ADMIN ACCESS LOGIC ---
+
+        function requestAdminAccess(action) {
+            // Don't show if another popup is already active
+            if (isGameEffectivelyPaused() && !adminPasswordPopup.classList.contains('visible')) return;
+
+            pendingAdminAction = action;
+            adminPasswordInput.value = "";
+            adminPasswordError.classList.add('hidden');
+            adminPasswordInput.classList.remove('input-error');
+            showPopup(adminPasswordPopup);
+            adminPasswordInput.focus();
+            currentPopupAction = 'admin_password'; // To help with pause logic
+        }
+
+        function executeAdminAction(action) {
+            if (!player1 && (action === 'invincibility' || action === 'health')) return;
+
+            switch (action) {
+                case 'invincibility':
+                    if (player1 && !isGameEffectivelyPaused()) {
+                        player1.isDivineProtectionActive = !player1.isDivineProtectionActive;
+                        if (player1.isDivineProtectionActive) {
+                            player1.health = 1000;
+                            player1.initialHealth = 1000;
+                            showTemporaryPopup("Divine Protection Activated!");
+                        } else {
+                            player1.health = Math.min(player1.health, player1.type.health);
+                            player1.initialHealth = player1.type.health;
+                            showTemporaryPopup("Divine Protection Deactivated!");
+                        }
+                        updateUI();
+                    }
+                    break;
+                case 'health':
+                    if (player1 && !isGameEffectivelyPaused()) {
+                        player1.health += 100;
+                        if (player1.isDivineProtectionActive) {
+                            player1.health = Math.min(player1.health, 1000);
+                        } else {
+                            player1.initialHealth = Math.max(player1.initialHealth, player1.health, player1.type.health);
+                        }
+                        updateUI();
+                        showTemporaryPopup("+100 Health!");
+                    }
+                    break;
+                case 'finish':
+                     if (!isGameEffectivelyPaused()) {
+                        showGameCompletionPopup();
+                     }
+                    break;
+            }
+        }
+
+        // UPDATED: Re-wired admin buttons to new password prompt
         invincibilityButton.addEventListener('click', () => {
-            if (player1 && !isGameEffectivelyPaused()) {
-                player1.isDivineProtectionActive = !player1.isDivineProtectionActive;
-                if (player1.isDivineProtectionActive) {
-                    player1.health = 1000;
-                    player1.initialHealth = 1000;
-                    showTemporaryPopup("Divine Protection Activated!");
-                } else {
-                    player1.health = Math.min(player1.health, player1.type.health);
-                    player1.initialHealth = player1.type.health;
-                    showTemporaryPopup("Divine Protection Deactivated!");
-                }
-                updateUI();
+            if (isAdminAccessGranted) {
+                executeAdminAction('invincibility');
+            } else {
+                requestAdminAccess('invincibility');
             }
         });
 
         plusHealthButton.addEventListener('click', () => {
-            if (player1 && !isGameEffectivelyPaused()) {
-                player1.health += 100;
-                if (player1.isDivineProtectionActive) {
-                    player1.health = Math.min(player1.health, 1000);
-                } else {
-                    player1.initialHealth = Math.max(player1.initialHealth, player1.health, player1.type.health);
-                }
-                updateUI();
-                showTemporaryPopup("+100 Health!");
+            if (isAdminAccessGranted) {
+                executeAdminAction('health');
+            } else {
+                requestAdminAccess('health');
             }
         });
 
         finishGameButton.addEventListener('click', () => {
-            if (!isGameEffectivelyPaused()) {
-                showGameCompletionPopup();
+            if (isAdminAccessGranted) {
+                executeAdminAction('finish');
+            } else {
+                requestAdminAccess('finish');
             }
         });
+
+        // NEW: Event listeners for admin password popup
+        closeAdminPasswordPopup.addEventListener('click', () => {
+            hidePopup(adminPasswordPopup);
+            pendingAdminAction = null;
+            currentPopupAction = null;
+        });
+
+        submitAdminPasswordButton.addEventListener('click', () => {
+            if (adminPasswordInput.value === ADMIN_PASSWORD) {
+                isAdminAccessGranted = true; // <-- Grant access
+                hidePopup(adminPasswordPopup);
+                executeAdminAction(pendingAdminAction);
+                pendingAdminAction = null;
+                currentPopupAction = null;
+                adminPasswordInput.value = "";
+                adminPasswordError.classList.add('hidden');
+                adminPasswordInput.classList.remove('input-error');
+                showTemporaryPopup("Admin Access Granted!"); // Notify user
+            } else {
+                adminPasswordError.classList.remove('hidden');
+                adminPasswordInput.classList.add('input-error');
+                setTimeout(() => adminPasswordInput.classList.remove('input-error'), 300);
+                adminPasswordInput.value = "";
+                adminPasswordInput.focus();
+            }
+        });
+
+        // --- END NEW ADMIN LOGIC ---
 
 
         hellModeButton.addEventListener('click', () => {
@@ -1646,7 +1779,19 @@
             codeInputSection.classList.add('hidden'); completionOptions.classList.add('hidden'); hellConfirmOptions.classList.add('hidden'); deathOptions.classList.remove('hidden');
             actionButton1.textContent = "Respawn"; actionButton2.classList.remove('hidden'); actionButton2.textContent = "Revive";
             showPopup(messageBox); currentPopupAction = 'game_over_options';
-            if (!isVictory) { const playerName = prompt("Game Over! Enter name for leaderboard:", `Fox${Math.floor(Math.random()*1000)}`); if (playerName) { saveScoreToLeaderboard(playerName, playerScore); } displayLeaderboard(); leaderboardContainer.classList.remove('hidden'); } else { leaderboardContainer.classList.add('hidden'); }
+
+            // MODIFIED: Changed prompt to use the globalPlayerName
+            const playerNameForLeaderboard = globalPlayerName || `Fox${Math.floor(Math.random()*1000)}`;
+
+            if (!isVictory) {
+                // We'll just auto-save with the name they entered at the start.
+                // const playerName = prompt("Game Over! Enter name for leaderboard:", `Fox${Math.floor(Math.random()*1000)}`);
+                saveScoreToLeaderboard(playerNameForLeaderboard, playerScore);
+                displayLeaderboard();
+                leaderboardContainer.classList.remove('hidden');
+            } else {
+                leaderboardContainer.classList.add('hidden');
+            }
         };
         actionButton1.addEventListener('click', () => {
             hidePopup(messageBox); currentPopupAction = null; leaderboardContainer.classList.add('hidden'); gameMode = 'normal'; document.body.className = 'select-none';
@@ -1656,12 +1801,12 @@
         });
 
         function saveScoreToLeaderboard(name, score) {
-            let l = JSON.parse(localStorage.getItem('ssbbLeaderboard_v4.25')) || [];
+            let l = JSON.parse(localStorage.getItem('ssbbLeaderboard_v6.4')) || [];
             l.push({ name, score, date: new Date().toLocaleDateString(), stage: `${gameMode.substring(0,1).toUpperCase()}-S${currentStage}W${currentWave}` });
-            l.sort((a,b) => b.score - a.score); l = l.slice(0,10); localStorage.setItem('ssbbLeaderboard_v4.25', JSON.stringify(l));
+            l.sort((a,b) => b.score - a.score); l = l.slice(0,10); localStorage.setItem('ssbbLeaderboard_v6.4', JSON.stringify(l));
         };
         function displayLeaderboard() {
-            leaderboardList.innerHTML = ""; const l = JSON.parse(localStorage.getItem('ssbbLeaderboard_v4.25')) || [];
+            leaderboardList.innerHTML = ""; const l = JSON.parse(localStorage.getItem('ssbbLeaderboard_v6.4')) || [];
             if (l.length === 0) { leaderboardList.innerHTML = "<li>No scores yet! Be the first!</li>"; return; }
             l.forEach(e => { const li = document.createElement('li'); li.textContent = `${e.name}: ${e.score} (${e.stage} - ${e.date})`; leaderboardList.appendChild(li); });
         };
@@ -1740,7 +1885,7 @@
             resizeCanvas(); window.addEventListener('resize', resizeCanvas);
             initializeStage(1,1);
             displayLeaderboard();
-            if (JSON.parse(localStorage.getItem('ssbbLeaderboard_v4.25'))?.length > 0) { leaderboardContainer.classList.remove('hidden'); }
+            if (JSON.parse(localStorage.getItem('ssbbLeaderboard_v6.4'))?.length > 0) { leaderboardContainer.classList.remove('hidden'); }
             gameRunning = true;
             lastFrameTime = performance.now();
             requestAnimationFrame(gameLoop);
@@ -1753,3 +1898,4 @@
     </script>
 </body>
 </html>
+
