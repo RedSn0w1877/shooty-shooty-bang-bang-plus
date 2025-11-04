@@ -8,3 +8,5 @@ Welcome to the Plus version! This is an improved, better and more maintained ver
 I will pick you within a few hours or a few days if I'm busy! I will personally either message you or talk to you and generate a valid code.
 
 Have fun!
+
+https://redsn0w1877.github.io/shooty-shooty-bang-bang-plus/
