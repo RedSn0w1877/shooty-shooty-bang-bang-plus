@@ -1100,6 +1100,7 @@ body.endless-mode #gameCanvas {
         let powerUps = [];
         let playerScore = 0;
         let mouseAimActive = false;
+        let mouseShootActive = false;
         let mouseX = 0;
         let mouseY = 0;
         let aimbotActive = false;
@@ -1302,10 +1303,16 @@ body.endless-mode #gameCanvas {
             if (isGameEffectivelyPaused()) return;
             const rect = canvas.getBoundingClientRect(); mouseX = e.clientX - rect.left; mouseY = e.clientY - rect.top;
         });
-        canvas.addEventListener('click', () => {
-            if (isGameEffectivelyPaused()) return;
+        canvas.addEventListener('mousedown', (e) => {
+            if (isGameEffectivelyPaused() || e.button !== 0) return;
+            mouseShootActive = true;
             if (mouseAimActive && !aimbotActive && player1 && player1.health > 0) { player1.shoot(true); }
         });
+        window.addEventListener('mouseup', (e) => {
+            if (e.button === 0) { mouseShootActive = false; }
+        });
+        canvas.addEventListener('mouseleave', () => { mouseShootActive = false; });
+        window.addEventListener('blur', () => { mouseShootActive = false; });
 
         function showPopup(element) {
             element.classList.remove('hidden');
@@ -1577,6 +1584,7 @@ body.endless-mode #gameCanvas {
             if (isGameEffectivelyPaused()) return;
             mouseAimActive = !mouseAimActive; showTemporaryPopup(mouseAimActive ? "Mouse Aim Activated!" : "Mouse Aim Deactivated!");
             canvas.style.cursor = mouseAimActive ? 'crosshair' : 'default';
+            if (!mouseAimActive) { mouseShootActive = false; }
             if (mouseAimActive && aimbotActive) { showTemporaryPopup("Aimbot is active, mouse aim will be overridden by Aimbot targeting."); }
         };
 
@@ -1802,7 +1810,7 @@ body.endless-mode #gameCanvas {
                 this.beamDamagePerFrame = 2.5; this.smashCharge = 0; this.smashChargeMax = SMASH_CHARGE_MAX; this.smashReady = false;
                 this.isSmashing = false; this.smashRadius = 0; this.smashMaxRadius = Math.max(CANVAS_WIDTH, CANVAS_HEIGHT) * 0.8;
                 this.smashExpansionSpeed = this.smashMaxRadius / 50; this.lastMoveDx = 1; this.lastMoveDy = 0; this.aimAngle = 0;
-                this.beamTargetAngle = 0;
+                this.beamTargetAngle = 0; this.keyboardAimVector = { x: 1, y: 0 }; this.hasKeyboardAimInput = false;
                 this.aimbotTarget = null; this.bulletCount = 1; this.engineParticles = [];
                 this.engineParticleTimer = 0; this.engineParticleInterval = 50; this.currentSpeed = 0;
                 this.shieldOpacity = 0; this.lastDamageTime = 0;
@@ -1890,20 +1898,49 @@ body.endless-mode #gameCanvas {
                 const smashBar = document.getElementById('smashChargeBar'); if (smashBar) { const sCP = this.smashCharge/this.smashChargeMax; smashBar.style.width = `${Math.min(100,sCP*100)}%`; smashBar.classList.toggle('ready',this.smashReady); }
             }
 
-            updateAimDirection() {
+            updateAimDirection(deltaTime) {
                 this.aimbotTarget = null;
+                const effectiveDelta = (typeof deltaTime === 'number' && !Number.isNaN(deltaTime)) ? Math.max(deltaTime, 0) : (1000/60);
+
                 if (aimbotActive) {
                     let closestTarget = null; let minDistanceSq = Infinity;
                     gameTargets.forEach(target => { const dx = target.x+target.width/2-(this.x+this.width/2); const dy = target.y+target.height/2-(this.y+this.height/2); const distSq = dx*dx+dy*dy; if (distSq < minDistanceSq) { minDistanceSq = distSq; closestTarget = target; }});
                     if (closestTarget) { const dx = closestTarget.x+closestTarget.width/2-(this.x+this.width/2); const dy = closestTarget.y+closestTarget.height/2-(this.y+this.height/2); this.aimAngle = Math.atan2(dy, dx); this.aimbotTarget = closestTarget; }
-                } else if (mouseAimActive) {
+                    this.keyboardAimVector.x = Math.cos(this.aimAngle);
+                    this.keyboardAimVector.y = Math.sin(this.aimAngle);
+                    return;
+                }
+
+                if (mouseAimActive) {
                     const dx = mouseX-(this.x+this.width/2); const dy = mouseY-(this.y+this.height/2); this.aimAngle = Math.atan2(dy, dx);
-                } else {
-                    let keyAimDx = 0; let keyAimDy = 0;
-                    if (keysPressed['ArrowLeft']) { keyAimDx = -1; } else if (keysPressed['ArrowRight']) { keyAimDx = 1;}
-                    if (keysPressed['ArrowUp']) { keyAimDy = -1; } else if (keysPressed['ArrowDown']) { keyAimDy = 1;}
-                    if (keyAimDx !== 0 || keyAimDy !== 0) { this.aimAngle = Math.atan2(keyAimDy, keyAimDx); }
-                    else { if (this.lastMoveDx !== 0 || this.lastMoveDy !== 0) { this.aimAngle = Math.atan2(this.lastMoveDy, this.lastMoveDx); } }
+                    this.keyboardAimVector.x = Math.cos(this.aimAngle);
+                    this.keyboardAimVector.y = Math.sin(this.aimAngle);
+                    return;
+                }
+
+                const aimInputX = (keysPressed['ArrowRight'] ? 1 : 0) - (keysPressed['ArrowLeft'] ? 1 : 0);
+                const aimInputY = (keysPressed['ArrowDown'] ? 1 : 0) - (keysPressed['ArrowUp'] ? 1 : 0);
+                const hasKeyboardInput = aimInputX !== 0 || aimInputY !== 0;
+
+                if (hasKeyboardInput) {
+                    this.hasKeyboardAimInput = true;
+                    const inputMagnitude = Math.hypot(aimInputX, aimInputY) || 1;
+                    const frameFactor = Math.min(effectiveDelta / (1000/60), 3);
+                    const aimAcceleration = 0.3 * frameFactor;
+                    this.keyboardAimVector.x += (aimInputX / inputMagnitude) * aimAcceleration;
+                    this.keyboardAimVector.y += (aimInputY / inputMagnitude) * aimAcceleration;
+                } else if (!this.hasKeyboardAimInput) {
+                    if (this.lastMoveDx !== 0 || this.lastMoveDy !== 0) {
+                        this.keyboardAimVector.x = this.lastMoveDx;
+                        this.keyboardAimVector.y = this.lastMoveDy;
+                    }
+                }
+
+                const vectorLength = Math.hypot(this.keyboardAimVector.x, this.keyboardAimVector.y);
+                if (vectorLength > 0.0001) {
+                    this.keyboardAimVector.x /= vectorLength;
+                    this.keyboardAimVector.y /= vectorLength;
+                    this.aimAngle = Math.atan2(this.keyboardAimVector.y, this.keyboardAimVector.x);
                 }
             }
 
@@ -1937,7 +1974,7 @@ body.endless-mode #gameCanvas {
 
                 let attemptShot = false;
                 if (aimbotActive) { attemptShot = true; }
-                else if (mouseAimActive && triggeredByClick) { attemptShot = true; }
+                else if (mouseAimActive && (triggeredByClick || mouseShootActive)) { attemptShot = true; }
                 else if (!mouseAimActive && keysPressed[this.controls.shoot]) { attemptShot = true; }
 
                 if (attemptShot && (currentTime - this.lastShotTime > actualShootDelay)) {
@@ -2011,7 +2048,7 @@ body.endless-mode #gameCanvas {
                     updateUI();
                 }
 
-                this.updateAimDirection(); this.move(deltaTime); this.shoot();
+                this.updateAimDirection(deltaTime); this.move(deltaTime); this.shoot();
                 if (!this.beamReady && !this.isFiringBeam) { this.beamCharge += deltaTime; if (this.beamCharge >= this.beamChargeMax) { this.beamCharge = this.beamChargeMax; this.beamReady = true;} }
                 if (!this.smashReady && !this.isSmashing) { this.smashCharge += deltaTime; if (this.smashCharge >= this.smashChargeMax) { this.smashCharge = this.smashChargeMax; this.smashReady = true;}}
                 if (keysPressed[this.controls.beam]) { this.fireBeam(); }
@@ -2039,6 +2076,7 @@ body.endless-mode #gameCanvas {
                 this.projectiles = []; this.x = 50; this.y = CANVAS_HEIGHT/2 - this.height/2;
                 this.beamCharge = 0; this.beamReady = false; this.isFiringBeam = false; this.smashCharge = 0; this.smashReady = false; this.isSmashing = false; this.smashRadius = 0;
                 this.lastMoveDx = 1; this.lastMoveDy = 0; this.aimAngle = 0; this.beamTargetAngle = 0; this.aimbotTarget = null;
+                this.keyboardAimVector = { x: 1, y: 0 }; this.hasKeyboardAimInput = false;
                 this.bulletCount = 1; this.engineParticles = []; this.currentSpeed = 0; this.shieldOpacity = 0;
                 this.isInvulnerable = false; this.invulnerableUntil = 0;
                 this.rapidFireActiveUntil = 0; this.shootDelayBase = this.type.baseShootDelay;
