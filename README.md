@@ -11,3 +11,4 @@ Have fun!
 
 Game has been Renamed to Strikr for educational purposes.
 
+https://redsn0w1877.github.io/Strikr/
