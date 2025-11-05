@@ -1699,6 +1699,8 @@ body.endless-mode #gameCanvas {
                 this.x=x-ENEMY_PROJECTILE_WIDTH/2;this.y=y-ENEMY_PROJECTILE_HEIGHT/2; this.width=ENEMY_PROJECTILE_WIDTH;this.height=ENEMY_PROJECTILE_HEIGHT;
                 this.speedX=sX;this.speedY=sY;this.color=c; this.damage = damage;
                 this.trail = []; this.maxTrailLength = (gameMode === 'hell') ? 8 : 5; this.rotation = Math.random() * Math.PI * 2;
+                this.baseSpeed = Math.sqrt(sX*sX + sY*sY) || 0;
+                this.curveStrength = 0.035;
             }
             draw(){
                 for (let i = 0; i < this.trail.length; i++) { const point = this.trail[i]; const alpha = 0.3 * (i / this.trail.length); ctx.fillStyle = `hsla(0, 100%, 70%, ${alpha})`; ctx.beginPath(); ctx.arc(point.x + this.width / 2, point.y + this.height / 2, this.width / 2.5 * (i / this.trail.length), 0, Math.PI * 2); ctx.fill(); }
@@ -1709,6 +1711,23 @@ body.endless-mode #gameCanvas {
             }
             update(deltaTime){
                 const dtFactor=deltaTime/(1000/60);
+                if (player1 && player1.health > 0 && this.baseSpeed > 0) {
+                    const projectileCenterX = this.x + this.width / 2;
+                    const projectileCenterY = this.y + this.height / 2;
+                    const playerCenterX = player1.x + player1.width / 2;
+                    const playerCenterY = player1.y + player1.height / 2;
+                    const dx = playerCenterX - projectileCenterX;
+                    const dy = playerCenterY - projectileCenterY;
+                    const distance = Math.sqrt(dx*dx + dy*dy) || 1;
+                    const targetAngle = Math.atan2(dy, dx);
+                    const currentAngle = Math.atan2(this.speedY, this.speedX);
+                    let angleDiff = normalizeAngle(targetAngle - currentAngle);
+                    const maxTurn = (this.curveStrength / (1 + distance / 400)) * dtFactor;
+                    angleDiff = Math.max(-maxTurn, Math.min(maxTurn, angleDiff));
+                    const newAngle = currentAngle + angleDiff;
+                    this.speedX = Math.cos(newAngle) * this.baseSpeed;
+                    this.speedY = Math.sin(newAngle) * this.baseSpeed;
+                }
                 this.x+=this.speedX*dtFactor; this.y+=this.speedY*dtFactor;
                 this.rotation += 0.1 * dtFactor;
 
@@ -1883,19 +1902,7 @@ body.endless-mode #gameCanvas {
                     const muzzleOffsetX = Math.cos(this.aimAngle) * (this.width * 0.5);
                     const muzzleOffsetY = Math.sin(this.aimAngle) * (this.height * 0.5);
                     createParticle( this.x+this.width/2 + muzzleOffsetX, this.y+this.height/2 + muzzleOffsetY, 5, `rgba(255,223,186,${0.5+Math.random()*0.5})`,[3,7],[2,4],[50,150],Math.PI/4 );
-
-                    let nearestEnemyForHoming = null;
-                    if (!mouseAimActive && !aimbotActive && gameTargets.length > 0) {
-                        let minDistanceSq = Infinity;
-                        const playerCenterX = this.x + this.width / 2;
-                        const playerCenterY = this.y + this.height / 2;
-                        gameTargets.forEach(target => {
-                            const dx = (target.x + target.width / 2) - playerCenterX;
-                            const dy = (target.y + target.height / 2) - playerCenterY;
-                            const distSq = dx * dx + dy * dy;
-                            if (distSq < minDistanceSq) { minDistanceSq = distSq; nearestEnemyForHoming = target; }
-                        });
-                    }
+                    createParticle( this.x+this.width/2 + muzzleOffsetX, this.y+this.height/2 + muzzleOffsetY, 3, 'rgba(255,255,255,0.7)',[2,4],[1,2],[40,90],Math.PI/6 );
 
                     for (let i = 0; i < numBullets; i++) {
                         const angleOffset = (i - (numBullets - 1) / 2) * spreadAngle;
@@ -1903,7 +1910,7 @@ body.endless-mode #gameCanvas {
                         const cosA = Math.cos(currentAngle); const sinA = Math.sin(currentAngle);
                         const startX = this.x + this.width/2 + cosA * (this.width * 0.5);
                         const startY = this.y + this.height/2 + sinA * (this.height * 0.5);
-                        this.projectiles.push(new Projectile( startX, startY, cosA*this.type.projectileSpeed, sinA*this.type.projectileSpeed, this.type.projectileColor, nearestEnemyForHoming ));
+                        this.projectiles.push(new Projectile( startX, startY, cosA*this.type.projectileSpeed, sinA*this.type.projectileSpeed, this.type.projectileColor ));
                     }
                 }
             }
@@ -1968,7 +1975,13 @@ body.endless-mode #gameCanvas {
                     for (let i = gameTargets.length-1; i >= 0; i--) { const target = gameTargets[i]; const distSq = Math.pow(target.x+target.width/2-(this.x+this.width/2),2)+Math.pow(target.y+target.height/2-(this.y+this.height/2),2); if (distSq <= Math.pow(this.smashRadius,2)) { target.takeDamage(1000); if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,10,target.color,[3,8],[2,5],[200,500]); gameTargets.splice(i,1); playerScore += SCORE_PER_SMASH_HIT; }}}
                     if (this.smashRadius >= this.smashMaxRadius) { this.isSmashing = false; this.smashRadius = 0; showTemporaryPopup("SMASHED!"); }
                 }
-                this.projectiles.forEach((p, index) => { p.update(deltaTime); });
+                for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                    const projectile = this.projectiles[i];
+                    projectile.update(deltaTime);
+                    if (projectile.shouldRemove) {
+                        this.projectiles.splice(i, 1);
+                    }
+                }
 
                 if (!this.isInvulnerable && !(Date.now() < this.shieldActiveUntil) && !this.isDivineProtectionActive && this.shieldOpacity > 0) {
                     this.shieldOpacity -= 0.02 * (deltaTime / 16.67); if (this.shieldOpacity < 0) this.shieldOpacity = 0;
@@ -2053,13 +2066,13 @@ body.endless-mode #gameCanvas {
         }
 
         class Projectile{
-            constructor(x,y,sX,sY,c, homingTarget = null){
+            constructor(x,y,sX,sY,c){
                 this.x=x-PROJECTILE_WIDTH/2;this.y=y-PROJECTILE_HEIGHT/2; this.width=PROJECTILE_WIDTH;this.height=PROJECTILE_HEIGHT;
                 this.speedX=sX;this.speedY=sY;this.color=c;
                 this.trail = []; this.maxTrailLength = 5;
-                this.homingTarget = homingTarget;
-                this.initialSpeedMagnitude = Math.sqrt(sX*sX + sY*sY);
-                this.homingStrengthFactor = 0.035;
+                this.createdAt = Date.now();
+                this.maxLifetime = 5000;
+                this.shouldRemove = false;
             }
             draw(){
                 for (let i = 0; i < this.trail.length; i++) { const point = this.trail[i]; const alpha = 0.5 * (i / this.trail.length); ctx.fillStyle = `hsla(50, 100%, 70%, ${alpha})`; ctx.beginPath(); const trailWidth = this.width*0.6*((this.trail.length-i)/this.trail.length); const trailHeight = this.height*0.6*((this.trail.length-i)/this.trail.length); ctx.ellipse(point.x+this.width/2,point.y+this.height/2,trailWidth/2,trailHeight/2,0,0,Math.PI*2); ctx.fill(); }
@@ -2068,32 +2081,16 @@ body.endless-mode #gameCanvas {
             }
             update(dT){
                 const dF=dT/(1000/60);
-                if (this.homingTarget && gameTargets.includes(this.homingTarget) && this.homingTarget.health > 0) {
-                    const targetCenterX = this.homingTarget.x + this.homingTarget.width / 2;
-                    const targetCenterY = this.homingTarget.y + this.homingTarget.height / 2;
-                    const projectileCenterX = this.x + this.width / 2;
-                    const projectileCenterY = this.y + this.height / 2;
-                    const distToTarget = Math.sqrt(Math.pow(targetCenterX - projectileCenterX, 2) + Math.pow(targetCenterY - projectileCenterY, 2));
-
-                    if (distToTarget > this.homingTarget.size * 0.5) {
-                        const angleToTarget = Math.atan2(targetCenterY - projectileCenterY, targetCenterX - projectileCenterX);
-                        let currentAngle = Math.atan2(this.speedY, this.speedX);
-                        let angleDifference = normalizeAngle(angleToTarget - currentAngle);
-                        const turnAmount = Math.max(-this.homingStrengthFactor, Math.min(this.homingStrengthFactor, angleDifference)) * dF;
-                        const newAngle = currentAngle + turnAmount;
-                        this.speedX = Math.cos(newAngle) * this.initialSpeedMagnitude;
-                        this.speedY = Math.sin(newAngle) * this.initialSpeedMagnitude;
-                    }
-                } else { this.homingTarget = null; }
-
                 this.x+=this.speedX*dF; this.y+=this.speedY*dF;
 
-                if (this.x > CANVAS_WIDTH + this.width) this.x = -this.width;
-                else if (this.x < -this.width) this.x = CANVAS_WIDTH + this.width;
-                if (this.y > CANVAS_HEIGHT + this.height) this.y = -this.height;
-                else if (this.y < -this.height) this.y = CANVAS_HEIGHT + this.height;
+                if (this.x <= 0) { this.x = 0; this.speedX = Math.abs(this.speedX); }
+                else if (this.x + this.width >= CANVAS_WIDTH) { this.x = CANVAS_WIDTH - this.width; this.speedX = -Math.abs(this.speedX); }
+                if (this.y <= 0) { this.y = 0; this.speedY = Math.abs(this.speedY); }
+                else if (this.y + this.height >= CANVAS_HEIGHT) { this.y = CANVAS_HEIGHT - this.height; this.speedY = -Math.abs(this.speedY); }
 
                 this.trail.push({ x: this.x, y: this.y }); if (this.trail.length > this.maxTrailLength) { this.trail.shift(); }
+
+                if (Date.now() - this.createdAt > this.maxLifetime) { this.shouldRemove = true; }
             }
         }
 
