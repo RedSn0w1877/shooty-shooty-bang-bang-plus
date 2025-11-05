@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1088,6 +1090,8 @@ body.endless-mode #gameCanvas {
         const HELL_MODE_SPAWN_INTERVAL = 1200;
         const HELL_MODE_EXTRA_SPAWN_COUNT = 2;
         const REVIVE_INVULNERABILITY_DURATION = 3000;
+        const STARFIELD_MIN_COUNT = 80;
+        const STARFIELD_MAX_COUNT = 220;
 
         let gameRunning = false;
         let currentStage = 1;
@@ -1110,6 +1114,47 @@ body.endless-mode #gameCanvas {
         let nextGoldenHealthPackSpawnTime = 0;
         let nextHellSpawnTime = 0;
         let globalPlayerName = "Player";
+        let starfieldDots = [];
+
+        function regenerateStarfield() {
+            const area = Math.max(1, CANVAS_WIDTH * CANVAS_HEIGHT);
+            const targetCount = Math.max(
+                STARFIELD_MIN_COUNT,
+                Math.min(STARFIELD_MAX_COUNT, Math.floor(area / 2400))
+            );
+            starfieldDots = new Array(targetCount).fill(null).map(() => {
+                const pulses = Math.random() < 0.3;
+                const size = 0.7 + Math.random() * 1.1;
+                return {
+                    x: Math.random() * (CANVAS_WIDTH - size) + size / 2,
+                    y: Math.random() * (CANVAS_HEIGHT - size) + size / 2,
+                    size,
+                    baseAlpha: 0.35 + Math.random() * 0.45,
+                    pulseSpeed: pulses ? (0.45 + Math.random() * 0.4) : 0,
+                    pulseAmplitude: pulses ? (0.12 + Math.random() * 0.18) : 0,
+                    phase: Math.random() * Math.PI * 2
+                };
+            });
+        }
+
+        function drawStarfield(deltaTime) {
+            ctx.fillStyle = '#05080f';
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            if (!starfieldDots.length) { return; }
+            const seconds = deltaTime / 1000;
+            for (let i = 0; i < starfieldDots.length; i++) {
+                const star = starfieldDots[i];
+                if (star.pulseSpeed > 0) {
+                    star.phase += seconds * star.pulseSpeed;
+                }
+                const intensity = star.baseAlpha + (star.pulseAmplitude * Math.sin(star.phase));
+                const alpha = Math.min(1, Math.max(0.2, intensity));
+                const size = star.size;
+                ctx.fillStyle = `rgba(248, 250, 252, ${alpha})`;
+                ctx.fillRect(star.x - size / 2, star.y - size / 2, size, size);
+            }
+            ctx.globalAlpha = 1;
+        }
 
         // NEW: Admin Password State
         let pendingAdminAction = null;
@@ -2735,6 +2780,7 @@ body.endless-mode #gameCanvas {
 
             CANVAS_WIDTH = newWidth;
             CANVAS_HEIGHT = newHeight;
+            regenerateStarfield();
 
             if (player1) {
                 player1.x = Math.max(0, Math.min(player1.x, CANVAS_WIDTH - player1.width));
@@ -2756,7 +2802,10 @@ body.endless-mode #gameCanvas {
             resizeCanvas(); window.addEventListener('resize', resizeCanvas);
             initializeStage(1,1);
             displayLeaderboard();
-            if (JSON.parse(localStorage.getItem('ssbbLeaderboard_v6.5'))?.length > 0) { leaderboardContainer.classList.remove('hidden'); }
+            if (JSON.parse(localStorage.getItem('ssbbLeaderboard_v6.5'))?.length > 0) {
+                leaderboardContainer.classList.remove('hidden');
+                resizeCanvas();
+            }
             gameRunning = true;
             lastFrameTime = performance.now();
             requestAnimationFrame(gameLoop);
