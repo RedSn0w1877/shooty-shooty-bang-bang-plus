@@ -4,20 +4,55 @@
     <title>ShootyShooty BangBang Plus - v6.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --body-bg: radial-gradient(circle at 20% 20%, #1a1440 0%, #040414 55%, #02020f 100%);
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --panel-bg: rgba(12, 16, 40, 0.82);
+            --panel-strong-bg: rgba(24, 32, 72, 0.78);
+            --panel-border: rgba(124, 58, 237, 0.65);
+            --panel-border-strong: rgba(138, 43, 226, 0.85);
+            --accent: #8a2be2;
+            --accent-strong: #4a00e0;
+            --accent-warm: #f97316;
+            --accent-cool: #06b6d4;
+            --accent-gold: #fde047;
+            --highlight: #7df9ff;
+            --canvas-bg: rgba(10, 10, 30, 0.85);
+            --canvas-border: #6900cc;
+            --glow-strong: rgba(105, 0, 204, 0.7);
+            --glow-soft: rgba(255, 255, 255, 0.18);
+            --button-radius: 0.75rem;
+            --panel-blur: 18px;
+            --star-color-1: rgba(255, 255, 255, 0.65);
+            --star-color-2: rgba(148, 163, 255, 0.55);
+            --star-color-3: rgba(199, 146, 234, 0.55);
+            --star-color-4: rgba(125, 249, 255, 0.45);
+            --aurora-color-1: rgba(125, 249, 255, 0.22);
+            --aurora-color-2: rgba(255, 94, 247, 0.18);
+            --aurora-color-3: rgba(120, 114, 255, 0.2);
+            --aurora-speed: 26s;
+            --aurora-opacity: 0.65;
+            --star-speed: 40s;
+            --title-glow: #ffae42;
+            --title-shadow: rgba(250, 204, 21, 0.35);
+        }
+
         body {
-            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             min-height: 100vh;
-            background-color: #0c0c1d;
-            color: #e2e8f0;
+            background: var(--body-bg);
+            color: var(--text-main);
             margin: 0;
             padding-top: 0.5rem;
             overflow-y: auto;
             overflow-x: hidden;
             position: relative;
+            transition: background 0.8s ease, color 0.4s ease;
         }
 
         body::before {
@@ -29,15 +64,30 @@
             height: 100%;
             z-index: -1;
             background-image:
-                radial-gradient(white, rgba(255,255,255,0) 0.5px, transparent 15px),
-                radial-gradient(white, rgba(255,255,255,0) 1px, transparent 20px),
-                radial-gradient(white, rgba(255,255,255,0) 2px, transparent 40px),
-                radial-gradient(white, rgba(255,255,255,0) 1px, transparent 30px),
-                radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,0) 2px, transparent 30px);
+                radial-gradient(var(--star-color-1), rgba(255,255,255,0) 0.5px, transparent 15px),
+                radial-gradient(var(--star-color-2), rgba(255,255,255,0) 1px, transparent 20px),
+                radial-gradient(var(--star-color-3), rgba(255,255,255,0) 2px, transparent 40px),
+                radial-gradient(var(--star-color-4), rgba(255,255,255,0) 1px, transparent 30px),
+                radial-gradient(var(--aurora-color-1), rgba(255,255,255,0) 2px, transparent 30px),
+                radial-gradient(var(--aurora-color-2), rgba(255,255,255,0) 2px, transparent 35px);
             background-repeat: repeat;
             background-size: 150px 150px, 200px 200px, 500px 500px, 300px 300px, 220px 220px, 130px 130px;
             background-position: 0 0, 10px 10px, 30px 50px, 110px 250px, 60px 90px, 20px 180px;
-            animation: starsAnim 40s linear infinite;
+            animation: starsAnim var(--star-speed) linear infinite;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: -20%;
+            z-index: -2;
+            background: radial-gradient(circle at 20% 20%, var(--aurora-color-1), transparent 55%),
+                        radial-gradient(circle at 80% 10%, var(--aurora-color-2), transparent 60%),
+                        radial-gradient(circle at 50% 80%, var(--aurora-color-3), transparent 65%);
+            opacity: var(--aurora-opacity);
+            filter: blur(80px) saturate(120%);
+            transform: translateZ(0);
+            animation: auroraDance var(--aurora-speed) ease-in-out infinite alternate;
         }
 
         @keyframes starsAnim {
@@ -45,7 +95,15 @@
             to { background-position: -150px -150px, -190px -190px, -470px -450px, -190px 0px, -160px -130px, -110px 0px; }
         }
 
-        body.hell-mode { background-color: #2d0808; }
+        @keyframes auroraDance {
+            0% { transform: translate(-10%, -8%) scale(1.05) rotate(0deg); opacity: 0.55; }
+            50% { transform: translate(6%, 4%) scale(1.1) rotate(2deg); opacity: 0.75; }
+            100% { transform: translate(-4%, 6%) scale(1.04) rotate(-2deg); opacity: 0.6; }
+        }
+
+        body.hell-mode {
+            background: radial-gradient(circle at 20% 20%, #3c0505 0%, #1a0000 70%, #0a0000 100%);
+        }
         body.hell-mode::before {
             background-image:
                 radial-gradient(red, rgba(255,0,0,0) 0.5px, transparent 20px),
@@ -55,6 +113,14 @@
                 radial-gradient(darkred, rgba(139,0,0,0) 2px, transparent 40px);
             background-size: 120px 120px, 180px 180px, 450px 450px, 280px 280px, 200px 200px;
             animation: starsAnimHell 30s linear infinite;
+        }
+        body.hell-mode::after {
+            background: radial-gradient(circle at 30% 20%, rgba(255, 86, 34, 0.28), transparent 60%),
+                        radial-gradient(circle at 80% 70%, rgba(255, 0, 0, 0.25), transparent 65%),
+                        radial-gradient(circle at 50% 40%, rgba(255, 196, 34, 0.18), transparent 70%);
+            filter: blur(90px) saturate(140%);
+            opacity: 0.55;
+            animation-duration: calc(var(--aurora-speed) * 0.6);
         }
 
         @keyframes starsAnimHell {
@@ -67,6 +133,41 @@
             animation: endlessGradientShift 20s ease infinite alternate;
         }
          body.endless-mode::before { opacity: 0.6; }
+        body.endless-mode::after {
+            background: radial-gradient(circle at 20% 30%, rgba(26, 42, 108, 0.28), transparent 65%),
+                        radial-gradient(circle at 75% 30%, rgba(248, 187, 61, 0.22), transparent 70%),
+                        radial-gradient(circle at 40% 80%, rgba(209, 35, 35, 0.2), transparent 75%);
+            opacity: 0.55;
+            animation-duration: calc(var(--aurora-speed) * 0.8);
+        }
+
+        @keyframes stagePulse {
+            0% { letter-spacing: 0.05em; text-shadow: 0 0 10px rgba(125, 249, 255, 0.3); }
+            50% { letter-spacing: 0.12em; text-shadow: 0 0 18px rgba(125, 249, 255, 0.6); }
+            100% { letter-spacing: 0.05em; text-shadow: 0 0 10px rgba(125, 249, 255, 0.3); }
+        }
+
+        @keyframes panelShimmer {
+            0% { transform: translateX(-10%) skewX(-5deg); opacity: 0.65; }
+            50% { transform: translateX(10%) skewX(5deg); opacity: 0.85; }
+            100% { transform: translateX(-15%) skewX(-4deg); opacity: 0.65; }
+        }
+
+        @keyframes leaderboardGlow {
+            0% { opacity: 0.35; transform: rotate(0deg) scale(1); }
+            50% { opacity: 0.6; transform: rotate(8deg) scale(1.1); }
+            100% { opacity: 0.35; transform: rotate(-6deg) scale(0.98); }
+        }
+
+        @keyframes buttonSweep {
+            from { transform: translateX(-50%) rotate(25deg); }
+            to { transform: translateX(120%) rotate(25deg); }
+        }
+
+        @keyframes barShimmer {
+            0% { transform: translateX(-60%); }
+            100% { transform: translateX(60%); }
+        }
 
         @keyframes endlessGradientShift {
             0% { background-position: 0% 50%; }
@@ -74,13 +175,101 @@
             100% { background-position: 0% 50%; }
         }
 
+        body.theme-nebula:not(.hell-mode):not(.endless-mode) {
+            --body-bg: radial-gradient(circle at 15% 15%, #3422a8 0%, #130636 48%, #05051a 100%);
+            --panel-bg: rgba(14, 18, 48, 0.82);
+            --panel-strong-bg: rgba(26, 32, 72, 0.78);
+            --panel-border: rgba(99, 102, 241, 0.65);
+            --panel-border-strong: rgba(168, 85, 247, 0.85);
+            --accent: #8b5cf6;
+            --accent-strong: #4f46e5;
+            --accent-warm: #f97316;
+            --accent-cool: #22d3ee;
+            --highlight: #a5b4fc;
+            --canvas-border: #7c3aed;
+            --glow-strong: rgba(124, 58, 237, 0.65);
+            --star-color-1: rgba(208, 213, 255, 0.85);
+            --star-color-2: rgba(165, 180, 252, 0.65);
+            --star-color-3: rgba(129, 140, 248, 0.6);
+            --star-color-4: rgba(96, 165, 250, 0.5);
+            --aurora-color-1: rgba(79, 70, 229, 0.25);
+            --aurora-color-2: rgba(59, 130, 246, 0.22);
+            --aurora-color-3: rgba(236, 72, 153, 0.18);
+        }
+
+        body.theme-aurora:not(.hell-mode):not(.endless-mode) {
+            --body-bg: linear-gradient(140deg, #041b2d 0%, #042f3d 35%, #052418 70%, #03090f 100%);
+            --panel-bg: rgba(8, 36, 50, 0.82);
+            --panel-strong-bg: rgba(12, 55, 68, 0.76);
+            --panel-border: rgba(45, 212, 191, 0.55);
+            --panel-border-strong: rgba(20, 184, 166, 0.85);
+            --accent: #14b8a6;
+            --accent-strong: #0f766e;
+            --accent-warm: #f97316;
+            --accent-cool: #06b6d4;
+            --highlight: #5eead4;
+            --canvas-border: #0ea5e9;
+            --glow-strong: rgba(45, 212, 191, 0.55);
+            --star-color-1: rgba(190, 242, 255, 0.85);
+            --star-color-2: rgba(56, 189, 248, 0.6);
+            --star-color-3: rgba(45, 212, 191, 0.55);
+            --star-color-4: rgba(34, 211, 238, 0.45);
+            --aurora-color-1: rgba(34, 197, 94, 0.2);
+            --aurora-color-2: rgba(6, 182, 212, 0.24);
+            --aurora-color-3: rgba(14, 165, 233, 0.2);
+        }
+
+        body.theme-sunset:not(.hell-mode):not(.endless-mode) {
+            --body-bg: linear-gradient(160deg, #2d0f3a 0%, #432371 45%, #fb6f92 100%);
+            --panel-bg: rgba(48, 19, 68, 0.78);
+            --panel-strong-bg: rgba(63, 27, 84, 0.76);
+            --panel-border: rgba(236, 72, 153, 0.55);
+            --panel-border-strong: rgba(244, 114, 182, 0.85);
+            --accent: #f472b6;
+            --accent-strong: #db2777;
+            --accent-warm: #fb7185;
+            --accent-cool: #38bdf8;
+            --highlight: #f9a8d4;
+            --canvas-border: #ec4899;
+            --glow-strong: rgba(236, 72, 153, 0.55);
+            --star-color-1: rgba(255, 228, 230, 0.8);
+            --star-color-2: rgba(251, 191, 219, 0.65);
+            --star-color-3: rgba(248, 113, 113, 0.55);
+            --star-color-4: rgba(251, 191, 36, 0.5);
+            --aurora-color-1: rgba(236, 72, 153, 0.25);
+            --aurora-color-2: rgba(249, 115, 22, 0.2);
+            --aurora-color-3: rgba(14, 165, 233, 0.18);
+        }
+
+        body.theme-cyber:not(.hell-mode):not(.endless-mode) {
+            --body-bg: linear-gradient(140deg, #06041f 0%, #1a0738 50%, #021019 100%);
+            --panel-bg: rgba(10, 10, 30, 0.84);
+            --panel-strong-bg: rgba(20, 18, 50, 0.78);
+            --panel-border: rgba(6, 182, 212, 0.55);
+            --panel-border-strong: rgba(20, 184, 166, 0.8);
+            --accent: #22d3ee;
+            --accent-strong: #0891b2;
+            --accent-warm: #f97316;
+            --accent-cool: #38bdf8;
+            --highlight: #67e8f9;
+            --canvas-border: #22d3ee;
+            --glow-strong: rgba(56, 189, 248, 0.55);
+            --star-color-1: rgba(244, 244, 255, 0.85);
+            --star-color-2: rgba(125, 211, 252, 0.6);
+            --star-color-3: rgba(6, 182, 212, 0.5);
+            --star-color-4: rgba(16, 185, 129, 0.45);
+            --aurora-color-1: rgba(14, 165, 233, 0.3);
+            --aurora-color-2: rgba(56, 189, 248, 0.25);
+            --aurora-color-3: rgba(16, 185, 129, 0.2);
+        }
+
         #gameCanvas {
-            border: 3px solid #6900cc;
-            border-radius: 0.75rem;
-            background-color: rgba(10, 10, 30, 0.85);
-            box-shadow: 0 0 25px rgba(105, 0, 204, 0.7), 0 0 10px rgba(255,255,255,0.2) inset;
+            border: 3px solid var(--canvas-border);
+            border-radius: 1rem;
+            background-color: var(--canvas-bg);
+            box-shadow: 0 0 35px var(--glow-strong), 0 0 12px var(--glow-soft) inset;
             cursor: crosshair;
-            transition: border-color 0.3s ease, transform 0.05s; /* Added transform for screen shake */
+            transition: border-color 0.3s ease, transform 0.05s, box-shadow 0.3s ease, background-color 0.3s ease;
         }
         body.hell-mode #gameCanvas {
             border-color: #ff3300;
@@ -99,40 +288,73 @@
             width: 100%;
             max-width: 100%;
             padding: 0.25rem;
-            background-color: rgba(0,0,10,0.5);
-            border-radius: 0.5rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background: var(--panel-bg);
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 45px rgba(2, 6, 23, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(var(--panel-blur));
+            border: 1px solid var(--panel-border);
+            transition: background 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
         }
-        #messageBox, #tempPopup, #changelogPopup, #licensePopup, #namePopup, #loadingScreen, #adminPasswordPopup {
-            position: fixed; top: 50%; left: 50%;
+        .modal-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%) scale(0.95);
-            background-color: rgba(20, 20, 50, 0.98);
-            color: white; padding: 2rem 2.5rem; border-radius: 0.75rem;
-            text-align: center; font-size: 1.25rem; z-index: 100;
-            box-shadow: 0 0 30px rgba(105, 0, 204, 0.5), 0 5px 20px rgba(0,0,0,0.5);
-            width: 90%; max-width: 600px;
-            border: 2px solid #8A2BE2;
+            background: rgba(6, 11, 30, 0.92);
+            color: var(--text-main);
+            padding: 2rem 2.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            font-size: 1.1rem;
+            z-index: 100;
+            box-shadow: 0 35px 65px rgba(2, 6, 23, 0.6), 0 0 45px rgba(124, 58, 237, 0.45);
+            width: min(90%, 600px);
+            border: 1px solid var(--panel-border-strong);
             opacity: 0;
             pointer-events: none;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease-out;
+            backdrop-filter: blur(calc(var(--panel-blur) - 4px));
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease-out, box-shadow 0.3s ease;
+        }
+        .hud-flyout {
+            position: fixed;
+            right: clamp(0.75rem, 4vw, 2rem);
+            bottom: clamp(0.75rem, 4vw, 2rem);
+            transform: translate3d(0, 20px, 0) scale(0.95);
+            background: rgba(8, 16, 44, 0.94);
+            color: var(--text-main);
+            padding: 1rem 1.2rem 1.15rem;
+            border-radius: 1rem;
+            text-align: left;
+            font-size: 1rem;
+            z-index: 104;
+            width: min(92vw, 360px);
+            border: 1px solid var(--panel-border-strong);
+            box-shadow: 0 25px 45px rgba(2, 6, 23, 0.55), 0 0 35px rgba(124, 58, 237, 0.35);
+            opacity: 0;
+            pointer-events: none;
+            backdrop-filter: blur(calc(var(--panel-blur) - 6px));
+            transition: transform 0.25s cubic-bezier(0.24, 0.82, 0.25, 1.2), opacity 0.2s ease-out, box-shadow 0.25s ease;
+        }
+        .hud-flyout.visible {
+            transform: translate3d(0, 0, 0) scale(1);
+            opacity: 1;
+            pointer-events: auto;
         }
 
         #licensePopup, #namePopup, #loadingScreen {
-            position: fixed; top: 50%; left: 50%;
-            background-color: rgba(15, 15, 35, 0.98);
-            color: white; padding: 2.5rem 3rem; border-radius: 0.75rem;
-            text-align: center; font-size: 1.25rem; z-index: 1000;
-            box-shadow: 0 0 40px rgba(125, 249, 255, 0.6), 0 8px 25px rgba(0,0,0,0.6);
-            width: 90%; max-width: 550px;
-            border: 2px solid #7DF9FF;
-            opacity: 0;
-            pointer-events: none;
+            background: rgba(8, 16, 44, 0.94);
+            padding: 2.5rem 3rem;
+            font-size: 1.2rem;
+            z-index: 1000;
+            box-shadow: 0 40px 75px rgba(2, 6, 23, 0.65), 0 0 55px rgba(125, 249, 255, 0.5);
+            width: min(90%, 550px);
+            border: 1px solid rgba(125, 249, 255, 0.6);
         }
 
         /* NEW POPUP STYLE */
         #adminPasswordPopup {
             box-shadow: 0 0 30px rgba(234, 179, 8, 0.5), 0 5px 20px rgba(0,0,0,0.5); /* Yellow glow for admin */
-            width: 90%; max-width: 500px;
+            width: min(90%, 500px);
             border: 2px solid #eab308; /* Yellow border */
             z-index: 101; /* Above messageBox */
         }
@@ -161,8 +383,7 @@
         }
 
 
-        #messageBox.visible, #tempPopup.visible, #changelogPopup.visible,
-        #licensePopup.visible, #namePopup.visible, #loadingScreen.visible, #adminPasswordPopup.visible {
+        .modal-popup.visible {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
             pointer-events: auto;
@@ -197,161 +418,454 @@
 
         .ui-top-bar {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-wrap: wrap;
+            align-items: stretch;
+            justify-content: center;
             width: 100%;
-            padding: 0.4rem 0.75rem;
+            padding: 1rem 1.1rem;
             box-sizing: border-box;
-            font-size: 0.9rem;
-            background-color: rgba(30, 30, 70, 0.8);
+            gap: 0.75rem;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(12, 18, 45, 0.65));
+            border-radius: 1rem;
+            margin-bottom: 0.6rem;
+            border: 1px solid rgba(148, 163, 255, 0.35);
+            box-shadow: 0 18px 32px rgba(2, 6, 23, 0.4), inset 0 0 0 1px rgba(255,255,255,0.04);
+            backdrop-filter: blur(calc(var(--panel-blur) - 4px));
+            position: relative;
+            overflow: hidden;
+        }
+        .ui-top-bar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(255,255,255,0.08), transparent 40%, rgba(255,255,255,0.06));
+            opacity: 0.8;
+            mix-blend-mode: screen;
+            pointer-events: none;
+            animation: panelShimmer 12s ease-in-out infinite;
+        }
+        .hud-chip {
+            position: relative;
+            flex: 1 1 150px;
+            min-width: 140px;
+            padding: 0.65rem 0.85rem 0.8rem;
+            border-radius: 0.95rem;
+            background: linear-gradient(160deg, rgba(17, 24, 56, 0.9), rgba(30, 41, 70, 0.65));
+            border: 1px solid rgba(148, 163, 255, 0.22);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03), 0 12px 24px rgba(2, 6, 23, 0.35);
+            backdrop-filter: blur(14px);
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            overflow: hidden;
+        }
+        .hud-chip::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background: radial-gradient(circle at 20% -10%, rgba(255,255,255,0.12), transparent 55%);
+            opacity: 0.6;
+        }
+        .hud-chip__label {
+            font-size: 0.68rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: rgba(148, 163, 255, 0.78);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .hud-chip__icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.35rem;
+            height: 1.35rem;
             border-radius: 0.5rem;
-            margin-bottom: 0.3rem;
-            border: 1px solid #4a00e0;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.4), rgba(59, 130, 246, 0.35));
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
+            font-size: 0.85rem;
+        }
+        .hud-chip__stat {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+        }
+        .hud-chip__value {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--highlight);
+            text-shadow: 0 0 14px rgba(125, 249, 255, 0.35);
+        }
+        .hud-chip__suffix {
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(226, 232, 240, 0.7);
+        }
+        .hud-chip__meter {
+            width: 100%;
+            height: 0.65rem;
+            border-radius: 999px;
+            background: rgba(6, 12, 28, 0.95);
+            border: 1px solid rgba(148, 163, 255, 0.3);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), inset 0 10px 18px rgba(15, 118, 110, 0.28);
+            overflow: hidden;
+            position: relative;
+        }
+        .hud-chip__note {
+            font-size: 0.65rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(148, 163, 184, 0.75);
+        }
+        .hud-chip--health {
+            background: linear-gradient(145deg, rgba(20, 38, 55, 0.9), rgba(16, 52, 64, 0.75));
+            border-color: rgba(52, 211, 153, 0.35);
+        }
+        .hud-chip--health .hud-chip__value {
+            color: #4ade80;
+            text-shadow: 0 0 16px rgba(74, 222, 128, 0.45);
+        }
+        .hud-chip--score {
+            border-color: rgba(253, 224, 71, 0.35);
+        }
+        .hud-chip--score .hud-chip__value {
+            color: rgba(253, 224, 71, 0.9);
+            text-shadow: 0 0 12px rgba(253, 224, 71, 0.4);
+        }
+        .hud-chip--beam .hud-chip__label .hud-chip__icon {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.45), rgba(251, 191, 36, 0.35));
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.35);
+        }
+        .hud-chip--smash .hud-chip__label .hud-chip__icon {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.45), rgba(168, 85, 247, 0.35));
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+        }
+        .hud-chip--ammo {
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+        .hud-chip--ammo .hud-chip__value {
+            color: rgba(6, 182, 212, 0.9);
+            text-shadow: 0 0 14px rgba(6, 182, 212, 0.4);
         }
         .version-box {
             position: fixed;
             top: 10px;
             right: 10px;
             font-size: 0.8rem;
-            color: #a0aec0;
-            background-color: rgba(0,0,10,0.6);
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
+            color: var(--text-muted);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7));
+            padding: 0.35rem 0.6rem;
+            border-radius: 0.5rem;
             z-index: 1000;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 20px rgba(2, 6, 23, 0.35);
         }
-        .charge-container { background-color: #334155; width: 70px; height: 12px; border-radius: 0.375rem; overflow: hidden; border: 1px solid #8A2BE2; box-shadow: inset 0 0 3px rgba(0,0,0,0.5); }
-        .charge-bar { height: 100%; width: 0%; transition: width 0.15s ease-out, background-color 0.2s ease; border-radius: 0.25rem; }
-        .beam-charge-bar { background: linear-gradient(to right, #f59e0b, #fbbf24); }
-        .beam-charge-bar.ready { background: linear-gradient(to right, #34d399, #6ee7b7); box-shadow: 0 0 8px #34d399; }
-        .smash-charge-bar { background: linear-gradient(to right, #ef4444, #f87171); }
-        .smash-charge-bar.ready { background: linear-gradient(to right, #a855f7, #c084fc); box-shadow: 0 0 8px #a855f7; }
+        .charge-container { width: 100%; height: 0.65rem; border-radius: 999px; overflow: hidden; border: 1px solid rgba(148, 163, 255, 0.35); background: rgba(12, 20, 40, 0.92); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 10px 18px rgba(15, 118, 110, 0.25); }
+        .charge-bar { height: 100%; width: 0%; transition: width 0.15s ease-out, background 0.3s ease, box-shadow 0.3s ease; border-radius: 999px; position: relative; overflow: hidden; }
+        .charge-bar::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, rgba(255,255,255,0.3), transparent 45%, rgba(255,255,255,0.25)); mix-blend-mode: screen; opacity: 0.7; animation: barShimmer 2.4s linear infinite; }
+        .beam-charge-bar { background: linear-gradient(to right, rgba(249, 115, 22, 0.65), rgba(251, 191, 36, 0.85)); }
+        .beam-charge-bar.ready { background: linear-gradient(to right, rgba(52, 211, 153, 0.75), rgba(110, 231, 183, 0.95)); box-shadow: 0 0 12px rgba(52, 211, 153, 0.85); }
+        .smash-charge-bar { background: linear-gradient(to right, rgba(239, 68, 68, 0.7), rgba(248, 113, 113, 0.9)); }
+        .smash-charge-bar.ready { background: linear-gradient(to right, rgba(168, 85, 247, 0.75), rgba(192, 132, 252, 0.95)); box-shadow: 0 0 12px rgba(168, 85, 247, 0.85); }
 
-        #healthDisplayContainer {
+        .hud-flyout__header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.6rem;
+        }
+        .hud-flyout__badge {
+            font-size: 0.65rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: rgba(148, 163, 255, 0.78);
+            background: rgba(24, 36, 72, 0.9);
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 255, 0.3);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+        }
+        .hud-flyout__message {
+            margin: 0 0 0.9rem;
+            font-size: 1.05rem;
+            line-height: 1.45;
+            color: rgba(226, 232, 240, 0.95);
+        }
+        .hud-flyout__actions,
+        .hud-flyout .mode-selection-buttons,
+        .hud-flyout #deathOptions,
+        .hud-flyout #hellConfirmOptions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+        .hud-flyout .mode-selection-buttons,
+        .hud-flyout #hellConfirmOptions {
+            flex-direction: column;
+        }
+        @media (min-width: 540px) {
+            .hud-flyout .mode-selection-buttons,
+            .hud-flyout #hellConfirmOptions {
+                flex-direction: row;
+            }
+        }
+        .hud-flyout .input-group {
+            flex-direction: column;
+            align-items: stretch;
             gap: 0.5rem;
         }
-        #healthText {
-            font-size: 0.9rem;
+        .hud-flyout .input-group input,
+        .hud-flyout .input-group button {
+            width: 100%;
+        }
+        .hud-flyout .input-group button {
+            margin: 0;
+        }
+        .hud-flyout .button-close {
+            position: static;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(148, 163, 255, 0.25);
+            border-radius: 999px;
+            padding: 0.1rem 0.55rem;
+            font-size: 1.4rem;
+            color: rgba(226, 232, 240, 0.55);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.04);
+        }
+        .hud-flyout .button-close:hover {
+            color: var(--highlight);
+            transform: scale(1.05);
+            background: rgba(255,255,255,0.1);
+        }
+        #tempPopup {
             font-weight: 600;
+            letter-spacing: 0.05em;
+            font-size: 0.9rem;
+        }
+        #tempPopup.visible {
+            pointer-events: none;
+        }
+
+        #healthText {
+            font-size: 1.45rem;
+            font-weight: 700;
         }
         .health-bar-container {
-            width: 80px;
-            height: 12px;
-            background-color: #4a5568;
-            border-radius: 0.25rem;
-            border: 1px solid #718096;
-            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border-radius: inherit;
+            border: none;
+            overflow: visible;
+            box-shadow: none;
         }
         .health-bar-inner {
             height: 100%;
             width: 100%;
-            background-color: #48bb78;
-            border-radius: 0.125rem;
+            background: linear-gradient(90deg, rgba(74, 222, 128, 0.9), rgba(56, 189, 248, 0.85));
+            border-radius: 999px;
             transition: width 0.2s ease-out;
         }
 
         .stage-info, .game-title, .game-title-like, .popup-title {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+        .game-title-like {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.85), rgba(125, 249, 255, 0.85));
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 16px rgba(125, 249, 255, 0.35);
+            letter-spacing: 0.05em;
+        }
         .popup-title {
             font-size: 1.8rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            color: #7DF9FF;
-            text-shadow: 0 0 8px rgba(125, 249, 255, 0.7);
+            color: var(--highlight);
+            text-shadow: 0 0 18px rgba(125, 249, 255, 0.55);
+            letter-spacing: 0.06em;
         }
         /* NEW: Admin popup title */
         #adminPasswordPopup .popup-title {
             color: #fde047;
             text-shadow: 0 0 8px rgba(253, 224, 71, 0.7);
         }
-        .stage-info {font-size: 1.1rem; font-weight: 600; color: #7DF9FF; text-shadow: 1px 1px 2px #000; margin-bottom: 0.25rem; }
+        .stage-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-size: 0.85rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--highlight);
+            padding: 0.55rem 1.25rem;
+            border-radius: 999px;
+            background: linear-gradient(120deg, rgba(20, 32, 62, 0.9), rgba(30, 58, 138, 0.55));
+            border: 1px solid rgba(125, 249, 255, 0.4);
+            box-shadow: 0 10px 25px rgba(2, 6, 23, 0.35), inset 0 0 0 1px rgba(255,255,255,0.04);
+            margin: 0.35rem 0 0.25rem;
+            animation: stagePulse 10s ease-in-out infinite;
+        }
+        .stage-info::before {
+            content: "☄";
+            font-size: 1.1rem;
+            filter: drop-shadow(0 0 6px rgba(125, 249, 255, 0.45));
+        }
         .game-title {
-            text-shadow: 2px 2px 3px #7c2d12;
+            background: linear-gradient(90deg, rgba(255, 196, 125, 0.95), rgba(255, 255, 255, 0.9), rgba(252, 165, 165, 0.9));
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px var(--title-shadow), 0 0 40px rgba(249, 115, 22, 0.35);
+            animation: titleGlow 6s ease-in-out infinite alternate;
+            letter-spacing: 0.08em;
+        }
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 18px var(--title-shadow), 0 0 32px rgba(249, 115, 22, 0.25); }
+            50% { text-shadow: 0 0 24px rgba(253, 224, 71, 0.55), 0 0 45px rgba(249, 115, 22, 0.45); }
+            100% { text-shadow: 0 0 18px var(--title-shadow), 0 0 30px rgba(249, 115, 22, 0.3); }
         }
         .controls-info .font-semibold {
              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-             font-size: 1.1rem;
-             color: #93c5fd;
+             font-size: 1.05rem;
+             color: var(--highlight);
+             letter-spacing: 0.04em;
+             text-transform: uppercase;
          }
 
 
-        .controls-info { background-color: rgba(30, 30, 70, 0.7); padding: 0.6rem; border-radius: 0.5rem; margin-top: 0.5rem; font-size: 0.75rem; text-align: center; width: 100%; border: 1px solid #4a00e0;}
+        .controls-info { background: var(--panel-strong-bg); padding: 0.75rem; border-radius: 0.75rem; margin-top: 0.6rem; font-size: 0.8rem; text-align: center; width: 100%; border: 1px solid var(--panel-border-strong); box-shadow: 0 10px 25px rgba(2, 6, 23, 0.28); backdrop-filter: blur(calc(var(--panel-blur) - 4px)); }
         .controls-info p { margin: 0.2rem 0; }
 
-        #leaderboardContainer { margin-top: 0.75rem; padding: 1rem; background-color: rgba(30, 30, 70, 0.85); border-radius: 0.5rem; width: 90%; max-width: 500px; text-align: center; border: 1px solid #4a00e0;}
+        #leaderboardContainer { margin-top: 0.75rem; padding: 1.1rem; background: var(--panel-strong-bg); border-radius: 0.85rem; width: 90%; max-width: 500px; text-align: center; border: 1px solid var(--panel-border-strong); box-shadow: 0 18px 35px rgba(2, 6, 23, 0.4), inset 0 0 0 1px rgba(255,255,255,0.04); backdrop-filter: blur(calc(var(--panel-blur) - 4px)); position: relative; overflow: hidden; }
+        #leaderboardContainer::before { content: ""; position: absolute; inset: -40%; background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.08), transparent 65%); opacity: 0.7; animation: leaderboardGlow 18s ease-in-out infinite; pointer-events: none; }
         #leaderboardContainer h2 {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-size: 1.2rem;
-            color: #ffae42;
+            background: linear-gradient(90deg, rgba(255, 174, 66, 0.95), rgba(255, 255, 255, 0.9));
+            -webkit-background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
         #leaderboardList { list-style: none; padding: 0; max-height: 150px; overflow-y: auto; }
-        #leaderboardList li { padding: 0.3rem 0.2rem; border-bottom: 1px solid #4a5568; font-size: 0.85rem; color: #d0d0ff; }
+        #leaderboardList li { padding: 0.4rem 0.35rem; border-bottom: 1px solid rgba(148, 163, 255, 0.25); font-size: 0.85rem; color: rgba(226, 232, 240, 0.9); letter-spacing: 0.03em; transition: background 0.3s ease, transform 0.2s ease; }
         #leaderboardList li:last-child { border-bottom: none; }
-        #leaderboardList li:nth-child(odd) { background-color: rgba(255,255,255,0.03); }
+        #leaderboardList li:nth-child(odd) { background-color: rgba(148,163,255,0.08); }
+        #leaderboardList li:hover { background-color: rgba(125, 249, 255, 0.15); transform: translateX(4px); }
 
         .input-group { margin-top: 0.75rem; }
         .input-group input {
-            background-color: #1e1e3f; color: #e0e0ff; border: 1px solid #8A2BE2;
-            padding: 0.6rem; border-radius: 0.375rem; margin-right: 0.3rem; font-size: 1rem;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: rgba(15, 23, 42, 0.85); color: var(--text-main); border: 1px solid var(--panel-border-strong);
+            padding: 0.6rem; border-radius: 0.6rem; margin-right: 0.3rem; font-size: 1rem;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05);
+            transition: border-color 0.2s, box-shadow 0.3s ease, transform 0.2s ease;
         }
-        .input-group input:focus { border-color: #c792ea; box-shadow: 0 0 8px rgba(199, 146, 234, 0.5), inset 0 1px 3px rgba(0,0,0,0.4); outline: none; }
+        .input-group input:focus { border-color: rgba(199, 146, 234, 0.9); box-shadow: 0 0 12px rgba(199, 146, 234, 0.45), inset 0 1px 2px rgba(255,255,255,0.08); outline: none; transform: translateY(-1px); }
 
         .button {
-            padding: 0.6rem 1rem; font-weight: 600; border-radius: 0.375rem;
-            transition: background-color 0.2s ease-out, color 0.2s ease-out, transform 0.1s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+            position: relative;
+            padding: 0.65rem 1.25rem; font-weight: 600; border-radius: var(--button-radius);
+            transition: background 0.3s ease-out, color 0.2s ease-out, transform 0.18s ease-out, box-shadow 0.3s ease-out, border-color 0.3s ease-out;
             cursor: pointer; border-width: 2px; border-style: solid;
             font-size: 0.95rem; text-transform: uppercase;
-            letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            background-color: transparent;
+            letter-spacing: 0.6px; box-shadow: 0 8px 18px rgba(2, 6, 23, 0.35);
+            background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.08), transparent 55%);
+            overflow: hidden;
+            isolation: isolate;
+        }
+        .button::before {
+            content: "";
+            position: absolute;
+            inset: -120% -40%;
+            background: linear-gradient(120deg, rgba(255,255,255,0.25), rgba(255,255,255,0.05), rgba(255,255,255,0.25));
+            opacity: 0;
+            transform: translateX(-120%) rotate(25deg);
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
         .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 14px 24px rgba(2, 6, 23, 0.45);
         }
+        .button:hover::before { opacity: 0.9; animation: buttonSweep 0.85s ease forwards; }
         .button:active {
-            transform: translateY(0px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transform: translateY(0px) scale(0.99);
+            box-shadow: 0 8px 16px rgba(2, 6, 23, 0.35);
         }
 
-        .button-primary { border-color: #f97316; color: #f97316; }
-        .button-primary:hover { background-color: rgba(249, 115, 22, 0.1); color: #fdba74; border-color: #fdba74;}
+        .button-primary { border-color: var(--accent-warm); color: var(--accent-warm); background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(255, 255, 255, 0)); }
+        .button-primary:hover { background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(255,255,255,0.05)); color: #fdba74; border-color: rgba(249, 115, 22, 0.85);}
 
-        .button-secondary { border-color: #7c3aed; color: #7c3aed; }
-        .button-secondary:hover { background-color: rgba(124, 58, 237, 0.1); color: #a78bfa; border-color: #a78bfa;}
+        .button-secondary { border-color: var(--accent); color: var(--accent); background: linear-gradient(135deg, rgba(124, 58, 237, 0.18), transparent 60%); }
+        .button-secondary:hover { background: linear-gradient(135deg, rgba(124, 58, 237, 0.35), transparent 55%); color: #c4b5fd; border-color: rgba(124, 58, 237, 0.85);}
 
-        .button-danger { border-color: #ef4444; color: #ef4444; }
-        .button-danger:hover { background-color: rgba(239, 68, 68, 0.1); color: #f87171; border-color: #f87171;}
+        .button-danger { border-color: #ef4444; color: #ef4444; background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), transparent 60%); }
+        .button-danger:hover { background: linear-gradient(135deg, rgba(239, 68, 68, 0.35), transparent 55%); color: #fca5a5; border-color: rgba(239, 68, 68, 0.85);}
 
-        .button-special { border-color: #06b6d4; color: #06b6d4; }
-        .button-special:hover { background-color: rgba(6, 182, 212, 0.1); color: #67e8f9; border-color: #67e8f9;}
+        .button-special { border-color: var(--accent-cool); color: var(--accent-cool); background: linear-gradient(135deg, rgba(6, 182, 212, 0.18), transparent 60%); }
+        .button-special:hover { background: linear-gradient(135deg, rgba(6, 182, 212, 0.35), transparent 55%); color: #67e8f9; border-color: rgba(6, 182, 212, 0.85);}
 
-        .button-godmode { border-color: #eab308; color: #eab308; }
-        .button-godmode:hover { background-color: rgba(234, 179, 8, 0.1); color: #fde047; border-color: #fde047;}
+        .button-godmode { border-color: var(--accent-gold); color: var(--accent-gold); background: linear-gradient(135deg, rgba(234, 179, 8, 0.18), transparent 60%); }
+        .button-godmode:hover { background: linear-gradient(135deg, rgba(234, 179, 8, 0.3), transparent 55%); color: #fde047; border-color: rgba(234, 179, 8, 0.85);}
 
-        .button-healthboost { border-color: #22c55e; color: #22c55e; }
-        .button-healthboost:hover { background-color: rgba(34, 197, 94, 0.1); color: #4ade80; border-color: #4ade80;}
+        .button-healthboost { border-color: #22c55e; color: #22c55e; background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), transparent 60%); }
+        .button-healthboost:hover { background: linear-gradient(135deg, rgba(34, 197, 94, 0.35), transparent 55%); color: #4ade80; border-color: rgba(34, 197, 94, 0.85);}
 
-        .button-finish { border-color: #3b82f6; color: #3b82f6; }
-        .button-finish:hover { background-color: rgba(59, 130, 246, 0.1); color: #60a5fa; border-color: #60a5fa;}
-
+        .button-finish { border-color: #3b82f6; color: #3b82f6; background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), transparent 60%); }
+        .button-finish:hover { background: linear-gradient(135deg, rgba(59, 130, 246, 0.35), transparent 55%); color: #60a5fa; border-color: rgba(59, 130, 246, 0.85);}
 
         .button-close {
             position: absolute; top: 0.75rem; right: 1rem;
-            background: none; border: none; color: #aaa;
+            background: none; border: none; color: rgba(226, 232, 240, 0.45);
             font-size: 2rem; line-height: 1; cursor: pointer;
             transition: color 0.2s, transform 0.2s;
+            text-shadow: 0 0 12px rgba(148, 163, 255, 0.35);
         }
-        .button-close:hover { color: #fff; transform: rotate(90deg); }
+        .button-close:hover { color: var(--highlight); transform: rotate(90deg) scale(1.1); }
 
+        .command-dock {
+            width: 100%;
+            padding: 0.85rem 1.1rem 1rem;
+            border-radius: 1.05rem;
+            background: linear-gradient(150deg, rgba(12, 20, 44, 0.85), rgba(29, 37, 78, 0.6));
+            border: 1px solid rgba(148, 163, 255, 0.25);
+            box-shadow: 0 18px 36px rgba(2, 6, 23, 0.4), inset 0 0 0 1px rgba(255,255,255,0.03);
+            backdrop-filter: blur(calc(var(--panel-blur) - 6px));
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            margin-top: 0.8rem;
+        }
+        .command-dock__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .command-dock__title {
+            font-size: 0.75rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--highlight);
+        }
+        .command-dock__subtitle {
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(148, 163, 184, 0.75);
+        }
         .extra-buttons-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.75rem;
-            margin-top: 0.75rem;
-            margin-bottom: 0.5rem;
+            gap: 0.7rem;
             justify-content: center;
         }
         .mode-selection-buttons { display: flex; justify-content: center; gap: 1.2rem; margin-top: 1.2rem; }
@@ -359,20 +873,30 @@
         #loadingProgressBarContainer {
             width: 80%;
             height: 25px;
-            background-color: #334155;
-            border-radius: 0.375rem;
-            border: 1px solid #8A2BE2;
+            background: rgba(15, 23, 42, 0.85);
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 255, 0.35);
             margin-top: 1.5rem;
             overflow: hidden;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 15px 25px rgba(2, 6, 23, 0.35);
         }
         #loadingProgressBar {
             width: 0%;
             height: 100%;
-            background: linear-gradient(to right, #8A2BE2, #4a00e0);
-            border-radius: 0.25rem;
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.75), rgba(192, 132, 252, 0.9), rgba(236, 72, 153, 0.85));
+            border-radius: 999px;
             transition: width 0.25s ease-out;
-            box-shadow: 0 0 10px rgba(138, 43, 226, 0.7);
+            box-shadow: 0 0 15px rgba(192, 132, 252, 0.65);
+            position: relative;
+            overflow: hidden;
+        }
+        #loadingProgressBar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(255,255,255,0.35), rgba(255,255,255,0));
+            mix-blend-mode: screen;
+            animation: barShimmer 1.8s linear infinite;
         }
         .input-error {
             border-color: red !important;
@@ -384,13 +908,194 @@
             75% {transform: translateX(5px);}
         }
 
+        .theme-panel {
+            position: fixed;
+            top: 1.25rem;
+            left: 1.25rem;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            color: var(--text-main);
+        }
+        .theme-panel__toggle {
+            border: 1px solid rgba(148, 163, 255, 0.35);
+            background: rgba(15, 23, 42, 0.7);
+            color: rgba(226, 232, 240, 0.9);
+            padding: 0.45rem 1rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            box-shadow: 0 12px 24px rgba(2, 6, 23, 0.35);
+            backdrop-filter: blur(12px);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.3s ease, background 0.3s ease;
+        }
+        .theme-panel__toggle:hover {
+            transform: translateY(-2px);
+            background: rgba(30, 41, 59, 0.8);
+            box-shadow: 0 16px 28px rgba(2, 6, 23, 0.45);
+        }
+        .theme-panel__content {
+            background: rgba(8, 16, 44, 0.82);
+            border-radius: 1rem;
+            padding: 1rem 1.15rem;
+            width: min(280px, 90vw);
+            border: 1px solid rgba(148, 163, 255, 0.25);
+            box-shadow: 0 20px 35px rgba(2, 6, 23, 0.45);
+            backdrop-filter: blur(16px);
+            transform-origin: top left;
+            transition: transform 0.35s ease, opacity 0.35s ease;
+            opacity: 0;
+            transform: scale(0.9) translateY(-10px);
+            pointer-events: none;
+        }
+        .theme-panel__content.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+        .theme-panel__title {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.95rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(226, 232, 240, 0.9);
+        }
+        .theme-swatches {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem;
+        }
+        .theme-swatch {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.65rem 0.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid transparent;
+            color: rgba(226, 232, 240, 0.88);
+            font-size: 0.85rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .theme-swatch::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            opacity: 0.9;
+            z-index: -1;
+        }
+        .theme-swatch[data-theme="nebula"]::before {
+            background: linear-gradient(135deg, #312e81, #5b21b6);
+        }
+        .theme-swatch[data-theme="aurora"]::before {
+            background: linear-gradient(135deg, #0f766e, #0ea5e9);
+        }
+        .theme-swatch[data-theme="sunset"]::before {
+            background: linear-gradient(135deg, #be123c, #f97316);
+        }
+        .theme-swatch[data-theme="cyber"]::before {
+            background: linear-gradient(135deg, #1d4ed8, #0f172a);
+        }
+        .theme-swatch:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(2, 6, 23, 0.35);
+            border-color: rgba(255,255,255,0.35);
+        }
+        .theme-swatch.theme-active {
+            border-color: rgba(255,255,255,0.55);
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.2), 0 12px 25px rgba(2, 6, 23, 0.45);
+        }
+        .theme-slider {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            margin-top: 0.75rem;
+        }
+        .theme-slider span {
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: rgba(226, 232, 240, 0.8);
+        }
+        .theme-slider input[type="range"] {
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(148, 163, 255, 0.3);
+            outline: none;
+            cursor: pointer;
+        }
+        .theme-slider input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid rgba(148, 163, 255, 0.9);
+            box-shadow: 0 4px 10px rgba(2, 6, 23, 0.35);
+            transition: transform 0.2s ease;
+        }
+        .theme-slider input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid rgba(148, 163, 255, 0.9);
+            box-shadow: 0 4px 10px rgba(2, 6, 23, 0.35);
+            transition: transform 0.2s ease;
+        }
+        .theme-slider input[type="range"]::-webkit-slider-thumb:hover,
+        .theme-slider input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.15);
+        }
+        @media (max-width: 640px) {
+            .theme-panel {
+                top: auto;
+                bottom: 1rem;
+                left: 50%;
+                transform: translateX(-50%);
+                align-items: center;
+            }
+            .theme-panel__content {
+                transform-origin: bottom center;
+            }
+        }
+
     </style>
 </head>
-<body class="select-none">
+<body class="select-none theme-nebula">
     <div id="versionDisplay" class="version-box">V6.4</div>
-    <div id="tempPopup" class="hidden"></div>
+    <div class="theme-panel">
+        <button id="themePanelToggle" type="button" class="theme-panel__toggle">✨ Themes</button>
+        <div id="themePanelContent" class="theme-panel__content">
+            <p class="theme-panel__title">Choose your vibe</p>
+            <div class="theme-swatches">
+                <button type="button" class="theme-swatch" data-theme="nebula">Nebula</button>
+                <button type="button" class="theme-swatch" data-theme="aurora">Aurora</button>
+                <button type="button" class="theme-swatch" data-theme="sunset">Sunset</button>
+                <button type="button" class="theme-swatch" data-theme="cyber">Cyber</button>
+            </div>
+            <label class="theme-slider" for="themeAnimationSpeed">
+                <span>Starfield speed</span>
+                <input type="range" id="themeAnimationSpeed" min="15" max="70" step="5" value="40">
+            </label>
+            <label class="theme-slider" for="themeGlowIntensity">
+                <span>Glow intensity</span>
+                <input type="range" id="themeGlowIntensity" min="40" max="90" step="5" value="65">
+            </label>
+        </div>
+    </div>
+    <div id="tempPopup" class="hud-flyout hidden"></div>
 
-    <div id="licensePopup" class="hidden">
+    <div id="licensePopup" class="modal-popup hidden">
         <h2 class="popup-title">Game Integrity Protection GIP</h2>
         <p class="mb-4">Please enter your license key to play this game.</p>
         <div class="input-group">
@@ -400,7 +1105,7 @@
         <p id="licenseErrorText" class="text-red-400 text-sm mt-2 hidden">Invalid License Key!</p>
     </div>
 
-    <div id="namePopup" class="hidden">
+    <div id="namePopup" class="modal-popup hidden">
         <h2 class="popup-title">Integrity Verified.</h2>
         <p class="mb-4">Please enter your name.</p>
         <div class="input-group">
@@ -409,7 +1114,7 @@
         </div>
     </div>
 
-    <div id="loadingScreen" class="hidden">
+    <div id="loadingScreen" class="modal-popup hidden">
         <h2 id="loadingWelcomeText" class="popup-title">Welcome!</h2>
         <p class="mb-4">We're loading your game environment, please wait.</p>
         <div id="loadingProgressBarContainer">
@@ -418,7 +1123,7 @@
     </div>
 
     <!-- NEW ADMIN PASSWORD POPUP -->
-    <div id="adminPasswordPopup" class="hidden">
+    <div id="adminPasswordPopup" class="modal-popup hidden">
         <h2 class="popup-title">Admin Access</h2>
         <p class="mb-4">Enter the password to access admin features.</p>
         <div class="input-group">
@@ -435,47 +1140,79 @@
             <h1 class="text-2xl sm:text-3xl font-bold mb-1 text-orange-400 game-title">ShootyShooty BangBang Plus</h1>
 
             <div class="ui-top-bar">
-                <div id="healthDisplayContainer">
-                    <span id="healthText">Health: 100</span>
-                    <div class="health-bar-container">
-                        <div id="healthBarInner" class="health-bar-inner"></div>
+                <div id="healthDisplayContainer" class="hud-chip hud-chip--health">
+                    <div class="hud-chip__label"><span class="hud-chip__icon">❤</span> Vitality</div>
+                    <div class="hud-chip__stat">
+                        <span id="healthText" class="hud-chip__value">100</span>
+                        <span class="hud-chip__suffix">HP</span>
+                    </div>
+                    <div class="hud-chip__meter">
+                        <div class="health-bar-container">
+                            <div id="healthBarInner" class="health-bar-inner"></div>
+                        </div>
                     </div>
                 </div>
-                <div id="scoreDisplay" class="text-xs sm:text-sm font-semibold text-yellow-300">Score: 0</div>
-                <div class="flex items-center gap-1 sm:gap-2">
-                    <span class="text-2xs sm:text-xs">Beam:</span>
-                    <div class="charge-container">
+                <div class="hud-chip hud-chip--score">
+                    <div class="hud-chip__label"><span class="hud-chip__icon">★</span> Score</div>
+                    <div class="hud-chip__stat">
+                        <span id="scoreDisplay" class="hud-chip__value">0</span>
+                        <span class="hud-chip__suffix">Pts</span>
+                    </div>
+                    <div class="hud-chip__note">Keep the streak alive</div>
+                </div>
+                <div class="hud-chip hud-chip--beam">
+                    <div class="hud-chip__label"><span class="hud-chip__icon">⚡</span> Beam Charge</div>
+                    <div class="hud-chip__meter charge-container">
                         <div id="beamChargeBar" class="charge-bar beam-charge-bar"></div>
                     </div>
+                    <div class="hud-chip__note">Full charge = auto-aim beam</div>
                 </div>
-                <div class="flex items-center gap-1 sm:gap-2">
-                    <span class="text-2xs sm:text-xs">Smash:</span>
-                    <div class="charge-container">
+                <div class="hud-chip hud-chip--smash">
+                    <div class="hud-chip__label"><span class="hud-chip__icon">✦</span> Smash Charge</div>
+                    <div class="hud-chip__meter charge-container">
                         <div id="smashChargeBar" class="charge-bar smash-charge-bar"></div>
                     </div>
+                    <div class="hud-chip__note">Unleash the fox smash</div>
                 </div>
-                <div id="bulletCountDisplay" class="text-xs sm:text-sm text-cyan-300">Shots: 1</div>
+                <div class="hud-chip hud-chip--ammo">
+                    <div class="hud-chip__label"><span class="hud-chip__icon">➳</span> Arsenal</div>
+                    <div class="hud-chip__stat">
+                        <span id="bulletCountDisplay" class="hud-chip__value">1</span>
+                        <span class="hud-chip__suffix">Shots</span>
+                    </div>
+                    <div class="hud-chip__note">Power-up for more fire</div>
+                </div>
             </div>
 
-            <div id="stageDisplay" class="stage-info text-base sm:text-lg">Stage 1: Wave 1</div>
+            <div id="stageDisplay" class="stage-info">Stage 1: Wave 1</div>
             <canvas id="gameCanvas"></canvas>
 
-            <div class="extra-buttons-container">
-                <button id="aimbotButton" class="button button-secondary">Aimbot</button>
-                <button id="changelogButton" class="button button-secondary">Changelog</button>
-                <button id="invincibilityButton" class="button button-godmode">Invincibility</button>
-                <button id="plusHealthButton" class="button button-healthboost">+100 Health</button>
-                <button id="finishGameButton" class="button button-finish">Finish Game</button>
+            <div class="command-dock">
+                <div class="command-dock__header">
+                    <span class="command-dock__title">Command Deck</span>
+                    <span class="command-dock__subtitle">Experimental Controls</span>
+                </div>
+                <div class="extra-buttons-container">
+                    <button id="aimbotButton" class="button button-secondary">Aimbot</button>
+                    <button id="changelogButton" class="button button-secondary">Changelog</button>
+                    <button id="invincibilityButton" class="button button-godmode">Invincibility</button>
+                    <button id="plusHealthButton" class="button button-healthboost">+100 Health</button>
+                    <button id="finishGameButton" class="button button-finish">Finish Game</button>
+                </div>
             </div>
 
-            <div id="messageBox" class="hidden">
-                <p id="messageText" class="mb-3 text-lg"></p>
-                <div id="codeInputSection" class="hidden input-group">
-                    <input type="text" id="codeInput" placeholder="Enter Code" class="w-2/3">
-                    <button id="submitCodeButton" class="button button-primary text-sm">Submit</button>
-                    <button id="cancelCodeButton" class="button button-secondary text-sm ml-2">Cancel</button>
+            <div id="messageBox" class="hud-flyout hidden">
+                <div class="hud-flyout__header">
+                    <span id="messageBadge" class="hud-flyout__badge">Mission Update</span>
+                    <button id="closeMessageBoxButton" class="button-close">&times;</button>
                 </div>
-                <div id="deathOptions" class="hidden flex justify-center gap-3 mt-2">
+                <p id="messageText" class="hud-flyout__message"></p>
+                <div id="codeInputSection" class="hidden input-group">
+                    <input type="text" id="codeInput" placeholder="Enter Code">
+                    <button id="submitCodeButton" class="button button-primary text-sm">Submit</button>
+                    <button id="cancelCodeButton" class="button button-secondary text-sm">Cancel</button>
+                </div>
+                <div id="deathOptions" class="hidden hud-flyout__actions">
                     <button id="actionButton1" class="button button-primary">Play Again</button>
                     <button id="actionButton2" class="button button-secondary">Revive</button>
                 </div>
@@ -487,10 +1224,9 @@
                     <button id="confirmHellButton" class="button button-danger">Yes, Unleash Hell!</button>
                     <button id="cancelHellButton" class="button button-secondary">Maybe Later</button>
                 </div>
-                <button id="closeMessageBoxButton" class="button-close">&times;</button>
             </div>
 
-            <div id="changelogPopup" class="hidden">
+            <div id="changelogPopup" class="modal-popup hidden">
                 <h2 class="text-xl font-semibold mb-4 text-center text-amber-300 game-title-like">Changelog</h2>
                 <div id="changelogContent">
                     <p>6.4: Added password protection to admin controls ('Invincibility', '+100 Health', 'Finish Game'). Admin access is now granted for the entire session after one successful login. Game version updated and title renamed to 'ShootyShooty BangBang Plus'.</p>
@@ -573,6 +1309,11 @@
         const closeMessageBoxButton = document.getElementById('closeMessageBoxButton');
         const bulletCountDisplay = document.getElementById('bulletCountDisplay');
         const versionDisplay = document.getElementById('versionDisplay');
+        const themePanelToggle = document.getElementById('themePanelToggle');
+        const themePanelContent = document.getElementById('themePanelContent');
+        const themeSwatches = Array.from(document.querySelectorAll('.theme-swatch'));
+        const themeAnimationSpeed = document.getElementById('themeAnimationSpeed');
+        const themeGlowIntensity = document.getElementById('themeGlowIntensity');
 
         const licensePopup = document.getElementById('licensePopup');
         const licenseKeyInput = document.getElementById('licenseKeyInput');
@@ -595,6 +1336,80 @@
 
 
         const GAME_VERSION = "v6.4";
+        const AVAILABLE_THEMES = ['nebula', 'aurora', 'sunset', 'cyber'];
+        const THEME_STORAGE_KEY = 'ssbb_theme_choice';
+        const SPEED_STORAGE_KEY = 'ssbb_star_speed';
+        const GLOW_STORAGE_KEY = 'ssbb_glow_strength';
+        const rootElement = document.documentElement;
+
+        function applyThemeChoice(themeName) {
+            const targetTheme = AVAILABLE_THEMES.includes(themeName) ? themeName : 'nebula';
+            AVAILABLE_THEMES.forEach(name => document.body.classList.remove(`theme-${name}`));
+            document.body.classList.add(`theme-${targetTheme}`);
+            themeSwatches.forEach(btn => btn.classList.toggle('theme-active', btn.dataset.theme === targetTheme));
+            localStorage.setItem(THEME_STORAGE_KEY, targetTheme);
+        }
+
+        function applyStarSpeed(value) {
+            const speed = Math.min(70, Math.max(15, Number(value) || 40));
+            rootElement.style.setProperty('--star-speed', `${speed}s`);
+            const auroraSpeed = Math.max(12, Math.round(speed * 0.65));
+            rootElement.style.setProperty('--aurora-speed', `${auroraSpeed}s`);
+            if (themeAnimationSpeed) { themeAnimationSpeed.value = speed; }
+            localStorage.setItem(SPEED_STORAGE_KEY, String(speed));
+        }
+
+        function applyGlowStrength(value) {
+            const glow = Math.min(90, Math.max(40, Number(value) || 65));
+            const opacity = (glow / 100).toFixed(2);
+            rootElement.style.setProperty('--aurora-opacity', opacity);
+            if (themeGlowIntensity) { themeGlowIntensity.value = glow; }
+            localStorage.setItem(GLOW_STORAGE_KEY, String(glow));
+        }
+
+        if (themePanelToggle && themePanelContent) {
+            themePanelToggle.setAttribute('aria-expanded', 'false');
+            themePanelToggle.addEventListener('click', () => {
+                const isActive = themePanelContent.classList.toggle('active');
+                themePanelToggle.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!themePanelContent.contains(event.target) && event.target !== themePanelToggle) {
+                    if (themePanelContent.classList.contains('active')) {
+                        themePanelContent.classList.remove('active');
+                        themePanelToggle.setAttribute('aria-expanded', 'false');
+                    }
+                }
+            });
+        }
+
+        themeSwatches.forEach(btn => {
+            btn.addEventListener('click', () => {
+                applyThemeChoice(btn.dataset.theme);
+                if (themePanelContent && themePanelToggle) {
+                    themePanelContent.classList.remove('active');
+                    themePanelToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+
+        if (themeAnimationSpeed) {
+            themeAnimationSpeed.addEventListener('input', (event) => {
+                applyStarSpeed(event.target.value);
+            });
+        }
+
+        if (themeGlowIntensity) {
+            themeGlowIntensity.addEventListener('input', (event) => {
+                applyGlowStrength(event.target.value);
+            });
+        }
+
+        applyThemeChoice(localStorage.getItem(THEME_STORAGE_KEY) || 'nebula');
+        applyStarSpeed(localStorage.getItem(SPEED_STORAGE_KEY) || themeAnimationSpeed?.value || 40);
+        applyGlowStrength(localStorage.getItem(GLOW_STORAGE_KEY) || themeGlowIntensity?.value || 65);
+
         let CANVAS_WIDTH = 800;
         let CANVAS_HEIGHT = 600;
         const PLAYER_WIDTH = 30;
@@ -659,6 +1474,7 @@
 
         const messageBox = document.getElementById('messageBox');
         const messageText = document.getElementById('messageText');
+        const messageBadge = document.getElementById('messageBadge');
         const codeInputSection = document.getElementById('codeInputSection');
         const codeInput = document.getElementById('codeInput');
         const submitCodeButton = document.getElementById('submitCodeButton');
@@ -770,6 +1586,7 @@
                         messageText.textContent = "Game Over!";
                         codeInputSection.classList.add('hidden');
                         deathOptions.classList.remove('hidden');
+                        setMessageBadge('Critical Status');
                         currentPopupAction = 'game_over_options';
                         return;
                     } else if (['aimbot', 'hell_confirm', 'game_complete'].includes(currentPopupAction)) {
@@ -806,13 +1623,30 @@
             if (mouseAimActive && !aimbotActive && player1 && player1.health > 0) { player1.shoot(true); }
         });
 
+        const DEFAULT_MESSAGE_BADGE = 'Mission Update';
+
+        function setMessageBadge(label = DEFAULT_MESSAGE_BADGE) {
+            if (messageBadge) {
+                messageBadge.textContent = label;
+            }
+        }
+
+        function resetMessageBadge() {
+            setMessageBadge(DEFAULT_MESSAGE_BADGE);
+        }
+
         function showPopup(element) {
             element.classList.remove('hidden');
             setTimeout(() => element.classList.add('visible'), 10);
         }
         function hidePopup(element) {
             element.classList.remove('visible');
-            setTimeout(() => element.classList.add('hidden'), 600);
+            setTimeout(() => {
+                element.classList.add('hidden');
+                if (element === messageBox) {
+                    resetMessageBadge();
+                }
+            }, 600);
         }
 
         submitLicenseKeyButton.addEventListener('click', () => {
@@ -859,6 +1693,7 @@
             messageText.textContent = "Enter Admin Code:";
             codeInputSection.classList.remove('hidden'); deathOptions.classList.add('hidden');
             completionOptions.classList.add('hidden'); hellConfirmOptions.classList.add('hidden');
+            setMessageBadge('Admin Override');
             showPopup(messageBox); codeInput.value = ""; codeInput.focus(); currentPopupAction = 'aimbot';
         });
 
@@ -869,6 +1704,7 @@
                 deathOptions.classList.add('hidden');
                 codeInput.value = "";
                 codeInput.focus();
+                setMessageBadge('Revive Protocol');
                 currentPopupAction = 'revive_code_input';
             }
         });
@@ -990,6 +1826,7 @@
         hellModeButton.addEventListener('click', () => {
             messageText.textContent = "Warning: Hell Mode is for HIGHLY ADVANCED PLAYERS ONLY. Proceed?";
             completionOptions.classList.add('hidden'); hellConfirmOptions.classList.remove('hidden');
+            setMessageBadge('Mode Select');
             showPopup(messageBox); currentPopupAction = 'hell_confirm';
         });
 
@@ -1014,6 +1851,7 @@
         cancelHellButton.addEventListener('click', () => {
             messageText.textContent = "You have successfully beat all the stages! Now you can choose to go into Hell Mode, or Endless Mode.";
             hellConfirmOptions.classList.add('hidden'); completionOptions.classList.remove('hidden');
+            setMessageBadge('Mission Complete');
             currentPopupAction = 'game_complete';
         });
 
@@ -1047,6 +1885,7 @@
                 } else {
                     messageText.textContent = "Incorrect Code. Try Respawn?";
                     codeInputSection.classList.add('hidden'); deathOptions.classList.remove('hidden');
+                    setMessageBadge('Access Denied');
                     currentPopupAction = 'revive_failed';
                 }
             }
@@ -1057,6 +1896,7 @@
             if (currentPopupAction === 'revive_code_input' || currentPopupAction === 'revive_failed') {
                 messageText.textContent = "Game Over!";
                 codeInputSection.classList.add('hidden'); deathOptions.classList.remove('hidden');
+                setMessageBadge('Critical Status');
                 currentPopupAction = 'game_over_options';
             } else {
                 hidePopup(messageBox); currentPopupAction = null;
@@ -1754,12 +2594,13 @@
         function showGameCompletionPopup() {
             gameRunning = false; messageText.textContent = "You have successfully beat all the stages! Now you can choose to go into Hell Mode, or Endless Mode.";
             codeInputSection.classList.add('hidden'); deathOptions.classList.add('hidden'); hellConfirmOptions.classList.add('hidden'); completionOptions.classList.remove('hidden');
+            setMessageBadge('Mission Complete');
             showPopup(messageBox); currentPopupAction = 'game_complete';
         }
 
         function updateUI() {
             if (!player1) return;
-            healthText.textContent = `Health: ${player1.health}`;
+            healthText.textContent = `${player1.health}`;
             const healthPercentage = (player1.health / player1.initialHealth) * 100;
             healthBarInner.style.width = `${Math.max(0, Math.min(100, healthPercentage))}%`;
             if (healthPercentage <= 25) {
@@ -1770,14 +2611,15 @@
                 healthBarInner.style.backgroundColor = '#48bb78';
             }
 
-            scoreDisplay.textContent = `Score: ${playerScore}`;
-            bulletCountDisplay.textContent = `Shots: ${player1.bulletCount}`;
+            scoreDisplay.textContent = `${playerScore}`;
+            bulletCountDisplay.textContent = `${player1.bulletCount}`;
             player1.updateChargeIndicators();
         };
         function announceOutcome(message, isVictory) {
             gameRunning = false; messageText.textContent = message;
             codeInputSection.classList.add('hidden'); completionOptions.classList.add('hidden'); hellConfirmOptions.classList.add('hidden'); deathOptions.classList.remove('hidden');
             actionButton1.textContent = "Respawn"; actionButton2.classList.remove('hidden'); actionButton2.textContent = "Revive";
+            setMessageBadge(isVictory ? 'Mission Complete' : 'Critical Status');
             showPopup(messageBox); currentPopupAction = 'game_over_options';
 
             // MODIFIED: Changed prompt to use the globalPlayerName
