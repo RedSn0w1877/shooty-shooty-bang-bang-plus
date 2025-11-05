@@ -301,35 +301,25 @@
             left: 50%;
             transform: translate(-50%, -50%) scale(0.95);
             background: rgba(6, 11, 30, 0.92);
-            color: var(--text-main);
-            padding: 2rem 2.5rem;
-            border-radius: 1rem;
-            text-align: center;
-            font-size: 1.1rem;
-            z-index: 100;
+            color: var(--text-main); padding: 2rem 2.5rem; border-radius: 1rem;
+            text-align: center; font-size: 1.25rem; z-index: 100;
             box-shadow: 0 35px 65px rgba(2, 6, 23, 0.6), 0 0 45px rgba(124, 58, 237, 0.45);
-            width: min(90%, 600px);
+            width: 90%; max-width: 600px;
             border: 1px solid var(--panel-border-strong);
             opacity: 0;
             pointer-events: none;
             backdrop-filter: blur(calc(var(--panel-blur) - 4px));
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease-out, box-shadow 0.3s ease;
         }
-        .hud-flyout {
-            position: fixed;
-            right: clamp(0.75rem, 4vw, 2rem);
-            bottom: clamp(0.75rem, 4vw, 2rem);
-            transform: translate3d(0, 20px, 0) scale(0.95);
+
+        #licensePopup, #namePopup, #loadingScreen {
+            position: fixed; top: 50%; left: 50%;
             background: rgba(8, 16, 44, 0.94);
-            color: var(--text-main);
-            padding: 1rem 1.2rem 1.15rem;
-            border-radius: 1rem;
-            text-align: left;
-            font-size: 1rem;
-            z-index: 104;
-            width: min(92vw, 360px);
-            border: 1px solid var(--panel-border-strong);
-            box-shadow: 0 25px 45px rgba(2, 6, 23, 0.55), 0 0 35px rgba(124, 58, 237, 0.35);
+            color: var(--text-main); padding: 2.5rem 3rem; border-radius: 1rem;
+            text-align: center; font-size: 1.25rem; z-index: 1000;
+            box-shadow: 0 40px 75px rgba(2, 6, 23, 0.65), 0 0 55px rgba(125, 249, 255, 0.5);
+            width: 90%; max-width: 550px;
+            border: 1px solid rgba(125, 249, 255, 0.6);
             opacity: 0;
             pointer-events: none;
             backdrop-filter: blur(calc(var(--panel-blur) - 6px));
@@ -424,13 +414,13 @@
             width: 100%;
             padding: 1rem 1.1rem;
             box-sizing: border-box;
-            gap: 0.75rem;
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(12, 18, 45, 0.65));
-            border-radius: 1rem;
-            margin-bottom: 0.6rem;
-            border: 1px solid rgba(148, 163, 255, 0.35);
-            box-shadow: 0 18px 32px rgba(2, 6, 23, 0.4), inset 0 0 0 1px rgba(255,255,255,0.04);
-            backdrop-filter: blur(calc(var(--panel-blur) - 4px));
+            font-size: 0.9rem;
+            background: var(--panel-strong-bg);
+            border-radius: 0.75rem;
+            margin-bottom: 0.3rem;
+            border: 1px solid var(--panel-border-strong);
+            box-shadow: 0 15px 30px rgba(2, 6, 23, 0.35), inset 0 0 0 1px rgba(255,255,255,0.04);
+            backdrop-filter: blur(calc(var(--panel-blur) - 6px));
             position: relative;
             overflow: hidden;
         }
@@ -444,113 +434,10 @@
             pointer-events: none;
             animation: panelShimmer 12s ease-in-out infinite;
         }
-        .hud-chip {
-            position: relative;
-            flex: 1 1 150px;
-            min-width: 140px;
-            padding: 0.65rem 0.85rem 0.8rem;
-            border-radius: 0.95rem;
-            background: linear-gradient(160deg, rgba(17, 24, 56, 0.9), rgba(30, 41, 70, 0.65));
-            border: 1px solid rgba(148, 163, 255, 0.22);
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03), 0 12px 24px rgba(2, 6, 23, 0.35);
-            backdrop-filter: blur(14px);
-            display: flex;
-            flex-direction: column;
-            gap: 0.45rem;
-            overflow: hidden;
-        }
-        .hud-chip::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            pointer-events: none;
-            background: radial-gradient(circle at 20% -10%, rgba(255,255,255,0.12), transparent 55%);
-            opacity: 0.6;
-        }
-        .hud-chip__label {
-            font-size: 0.68rem;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: rgba(148, 163, 255, 0.78);
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-        .hud-chip__icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 1.35rem;
-            height: 1.35rem;
-            border-radius: 0.5rem;
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.4), rgba(59, 130, 246, 0.35));
-            box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
-            font-size: 0.85rem;
-        }
-        .hud-chip__stat {
-            display: flex;
-            align-items: baseline;
-            gap: 0.4rem;
-        }
-        .hud-chip__value {
-            font-size: 1.35rem;
-            font-weight: 700;
-            color: var(--highlight);
-            text-shadow: 0 0 14px rgba(125, 249, 255, 0.35);
-        }
-        .hud-chip__suffix {
-            font-size: 0.7rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: rgba(226, 232, 240, 0.7);
-        }
-        .hud-chip__meter {
-            width: 100%;
-            height: 0.65rem;
-            border-radius: 999px;
-            background: rgba(6, 12, 28, 0.95);
-            border: 1px solid rgba(148, 163, 255, 0.3);
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), inset 0 10px 18px rgba(15, 118, 110, 0.28);
-            overflow: hidden;
-            position: relative;
-        }
-        .hud-chip__note {
-            font-size: 0.65rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: rgba(148, 163, 184, 0.75);
-        }
-        .hud-chip--health {
-            background: linear-gradient(145deg, rgba(20, 38, 55, 0.9), rgba(16, 52, 64, 0.75));
-            border-color: rgba(52, 211, 153, 0.35);
-        }
-        .hud-chip--health .hud-chip__value {
-            color: #4ade80;
-            text-shadow: 0 0 16px rgba(74, 222, 128, 0.45);
-        }
-        .hud-chip--score {
-            border-color: rgba(253, 224, 71, 0.35);
-        }
-        .hud-chip--score .hud-chip__value {
+        .score-display {
             color: rgba(253, 224, 71, 0.9);
-            text-shadow: 0 0 12px rgba(253, 224, 71, 0.4);
-        }
-        .hud-chip--beam .hud-chip__label .hud-chip__icon {
-            background: linear-gradient(135deg, rgba(249, 115, 22, 0.45), rgba(251, 191, 36, 0.35));
-            box-shadow: 0 0 12px rgba(251, 191, 36, 0.35);
-        }
-        .hud-chip--smash .hud-chip__label .hud-chip__icon {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.45), rgba(168, 85, 247, 0.35));
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
-        }
-        .hud-chip--ammo {
-            border-color: rgba(6, 182, 212, 0.3);
-        }
-        .hud-chip--ammo .hud-chip__value {
-            color: rgba(6, 182, 212, 0.9);
-            text-shadow: 0 0 14px rgba(6, 182, 212, 0.4);
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 12px rgba(253, 224, 71, 0.35);
         }
         .version-box {
             position: fixed;
@@ -566,7 +453,7 @@
             backdrop-filter: blur(12px);
             box-shadow: 0 10px 20px rgba(2, 6, 23, 0.35);
         }
-        .charge-container { width: 100%; height: 0.65rem; border-radius: 999px; overflow: hidden; border: 1px solid rgba(148, 163, 255, 0.35); background: rgba(12, 20, 40, 0.92); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 10px 18px rgba(15, 118, 110, 0.25); }
+        .charge-container { background: rgba(15, 23, 42, 0.75); width: 80px; height: 12px; border-radius: 999px; overflow: hidden; border: 1px solid rgba(148, 163, 255, 0.35); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 12px rgba(15, 118, 110, 0.35); }
         .charge-bar { height: 100%; width: 0%; transition: width 0.15s ease-out, background 0.3s ease, box-shadow 0.3s ease; border-radius: 999px; position: relative; overflow: hidden; }
         .charge-bar::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, rgba(255,255,255,0.3), transparent 45%, rgba(255,255,255,0.25)); mix-blend-mode: screen; opacity: 0.7; animation: barShimmer 2.4s linear infinite; }
         .beam-charge-bar { background: linear-gradient(to right, rgba(249, 115, 22, 0.65), rgba(251, 191, 36, 0.85)); }
@@ -574,7 +461,7 @@
         .smash-charge-bar { background: linear-gradient(to right, rgba(239, 68, 68, 0.7), rgba(248, 113, 113, 0.9)); }
         .smash-charge-bar.ready { background: linear-gradient(to right, rgba(168, 85, 247, 0.75), rgba(192, 132, 252, 0.95)); box-shadow: 0 0 12px rgba(168, 85, 247, 0.85); }
 
-        .hud-flyout__header {
+        #healthDisplayContainer {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -622,49 +509,20 @@
             align-items: stretch;
             gap: 0.5rem;
         }
-        .hud-flyout .input-group input,
-        .hud-flyout .input-group button {
-            width: 100%;
-        }
-        .hud-flyout .input-group button {
-            margin: 0;
-        }
-        .hud-flyout .button-close {
-            position: static;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(148, 163, 255, 0.25);
-            border-radius: 999px;
-            padding: 0.1rem 0.55rem;
-            font-size: 1.4rem;
-            color: rgba(226, 232, 240, 0.55);
-            box-shadow: 0 0 0 1px rgba(255,255,255,0.04);
-        }
-        .hud-flyout .button-close:hover {
-            color: var(--highlight);
-            transform: scale(1.05);
-            background: rgba(255,255,255,0.1);
-        }
-        #tempPopup {
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            font-size: 0.9rem;
-        }
-        #tempPopup.visible {
-            pointer-events: none;
-        }
-
         #healthText {
-            font-size: 1.45rem;
-            font-weight: 700;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            color: rgba(226, 232, 240, 0.9);
         }
         .health-bar-container {
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            border-radius: inherit;
-            border: none;
-            overflow: visible;
-            box-shadow: none;
+            width: 80px;
+            height: 12px;
+            background: rgba(15, 23, 42, 0.78);
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 255, 0.35);
+            overflow: hidden;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
         }
         .health-bar-inner {
             height: 100%;
@@ -698,26 +556,12 @@
             text-shadow: 0 0 8px rgba(253, 224, 71, 0.7);
         }
         .stage-info {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.55rem;
-            font-size: 0.85rem;
-            letter-spacing: 0.18em;
+            font-size: 1.15rem; font-weight: 600; color: var(--highlight);
+            text-shadow: 0 0 12px rgba(125, 249, 255, 0.4);
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
-            font-weight: 700;
-            color: var(--highlight);
-            padding: 0.55rem 1.25rem;
-            border-radius: 999px;
-            background: linear-gradient(120deg, rgba(20, 32, 62, 0.9), rgba(30, 58, 138, 0.55));
-            border: 1px solid rgba(125, 249, 255, 0.4);
-            box-shadow: 0 10px 25px rgba(2, 6, 23, 0.35), inset 0 0 0 1px rgba(255,255,255,0.04);
-            margin: 0.35rem 0 0.25rem;
             animation: stagePulse 10s ease-in-out infinite;
-        }
-        .stage-info::before {
-            content: "☄";
-            font-size: 1.1rem;
-            filter: drop-shadow(0 0 6px rgba(125, 249, 255, 0.45));
         }
         .game-title {
             background: linear-gradient(90deg, rgba(255, 196, 125, 0.95), rgba(255, 255, 255, 0.9), rgba(252, 165, 165, 0.9));
@@ -1093,7 +937,7 @@
             </label>
         </div>
     </div>
-    <div id="tempPopup" class="hud-flyout hidden"></div>
+    <div id="tempPopup" class="hidden"></div>
 
     <div id="licensePopup" class="modal-popup hidden">
         <h2 class="popup-title">Game Integrity Protection GIP</h2>
@@ -1152,17 +996,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="hud-chip hud-chip--score">
-                    <div class="hud-chip__label"><span class="hud-chip__icon">★</span> Score</div>
-                    <div class="hud-chip__stat">
-                        <span id="scoreDisplay" class="hud-chip__value">0</span>
-                        <span class="hud-chip__suffix">Pts</span>
-                    </div>
-                    <div class="hud-chip__note">Keep the streak alive</div>
-                </div>
-                <div class="hud-chip hud-chip--beam">
-                    <div class="hud-chip__label"><span class="hud-chip__icon">⚡</span> Beam Charge</div>
-                    <div class="hud-chip__meter charge-container">
+                <div id="scoreDisplay" class="text-xs sm:text-sm font-semibold score-display">Score: 0</div>
+                <div class="flex items-center gap-1 sm:gap-2">
+                    <span class="text-2xs sm:text-xs">Beam:</span>
+                    <div class="charge-container">
                         <div id="beamChargeBar" class="charge-bar beam-charge-bar"></div>
                     </div>
                     <div class="hud-chip__note">Full charge = auto-aim beam</div>
