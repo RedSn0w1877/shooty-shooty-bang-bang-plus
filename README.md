@@ -10,4 +10,4 @@ I will pick you within a few hours or a few days if I'm busy! I will personally 
 Have fun!
 
 Game has been Renamed to Strikr for educational purposes.
-https://redsn0w1877.github.io/shooty-shooty-bang-bang-plus/
+
