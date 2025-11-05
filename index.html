@@ -867,6 +867,7 @@ body.endless-mode #gameCanvas {
 
             <div id="stageDisplay" class="stage-info">Stage 1: Wave 1</div>
             <canvas id="gameCanvas"></canvas>
+            <p class="controls-hint">Press P to pause, Q to dash, and hold the mouse button to keep firing.</p>
 
             <div class="extra-buttons-container">
                 <button id="aimbotButton" class="button button-secondary" type="button">Aimbot</button>
@@ -1083,6 +1084,7 @@ body.endless-mode #gameCanvas {
         const POWERUP_LIFETIME = 8000;
         const POWERUP_DURATION = 7000;
         const MAX_BULLET_COUNT = 5;
+        const MAX_PARTICLES = 220;
         const HELL_MODE_SPAWN_INTERVAL = 1200;
         const HELL_MODE_EXTRA_SPAWN_COUNT = 2;
         const REVIVE_INVULNERABILITY_DURATION = 3000;
@@ -1094,8 +1096,9 @@ body.endless-mode #gameCanvas {
         let gameTargets = [];
         let enemyProjectiles = [];
         let powerUps = [];
+        let terrainObstacles = [];
         let playerScore = 0;
-        let mouseAimActive = false;
+        let mouseAimActive = true;
         let mouseX = 0;
         let mouseY = 0;
         let aimbotActive = false;
@@ -1130,6 +1133,7 @@ body.endless-mode #gameCanvas {
         const actionButton2 = document.getElementById('actionButton2');
         const leaderboardContainer = document.getElementById('leaderboardContainer');
         const leaderboardList = document.getElementById('leaderboardList');
+        const pauseIndicator = document.getElementById('pauseIndicator');
 
         const FOX_TYPES = {
             "Ranger": {
@@ -1148,9 +1152,14 @@ body.endless-mode #gameCanvas {
         };
 
         const keysPressed = {};
+        let manualPause = false;
+        let mouseFireHeld = false;
         versionDisplay.textContent = GAME_VERSION;
 
         function isGameEffectivelyPaused() {
+            if (manualPause) {
+                return true;
+            }
             if (!mainGameContent.classList.contains('hidden')) {
                  // UPDATED: Added adminPasswordPopup
                  return messageBox.classList.contains('visible') ||
@@ -1160,9 +1169,174 @@ body.endless-mode #gameCanvas {
             return true;
         }
 
+        function updatePauseIndicator() {
+            if (!pauseIndicator) return;
+            if (manualPause) {
+                pauseIndicator.classList.remove('hidden');
+            } else {
+                pauseIndicator.classList.add('hidden');
+            }
+        }
+
+        function setManualPause(state) {
+            manualPause = state;
+            if (manualPause) {
+                mouseFireHeld = false;
+            }
+            updatePauseIndicator();
+            if (!manualPause && gameRunning) {
+                lastFrameTime = performance.now();
+            }
+        }
+
+        function toggleManualPause() {
+            setManualPause(!manualPause);
+        }
+
+
+        function rectanglesOverlap(a, b) {
+            return a.x < b.x + b.width &&
+                   a.x + a.width > b.x &&
+                   a.y < b.y + b.height &&
+                   a.y + a.height > b.y;
+        }
+
+        function isRectOverlappingObstacles(x, y, width, height, padding = 0) {
+            const rect = {
+                x: x - padding,
+                y: y - padding,
+                width: width + padding * 2,
+                height: height + padding * 2
+            };
+            return terrainObstacles.some(obstacle => rectanglesOverlap(rect, obstacle));
+        }
+
+        function generateTerrainObstacles(stage) {
+            terrainObstacles = [];
+            if (CANVAS_WIDTH <= 0 || CANVAS_HEIGHT <= 0) { return; }
+
+            const maxTotalArea = CANVAS_WIDTH * CANVAS_HEIGHT * 0.18;
+            const scaledStage = Math.max(1, Math.floor((stage + 1) / 2));
+            const obstacleCount = Math.min(5, scaledStage);
+            const leftSafeWidth = Math.min(220, CANVAS_WIDTH * 0.28);
+            const leftSafeHeight = Math.min(260, CANVAS_HEIGHT * 0.55);
+            const centerSafeWidth = Math.min(300, CANVAS_WIDTH * 0.4);
+            const centerSafeHeight = Math.min(360, CANVAS_HEIGHT * 0.6);
+            const safeZones = [
+                { x: 0, y: (CANVAS_HEIGHT - leftSafeHeight) / 2, width: leftSafeWidth, height: leftSafeHeight },
+                { x: CANVAS_WIDTH / 2 - centerSafeWidth / 2, y: CANVAS_HEIGHT / 2 - centerSafeHeight / 2, width: centerSafeWidth, height: centerSafeHeight }
+            ];
+
+            let usedArea = 0;
+            let attempts = 0;
+            const maxAttempts = obstacleCount * 24;
+
+            while (terrainObstacles.length < obstacleCount && attempts < maxAttempts) {
+                attempts++;
+                const minWidth = Math.max(48, CANVAS_WIDTH * 0.08);
+                const maxWidth = Math.max(minWidth + 12, CANVAS_WIDTH * 0.18);
+                const minHeight = Math.max(44, CANVAS_HEIGHT * 0.08);
+                const maxHeight = Math.max(minHeight + 12, CANVAS_HEIGHT * 0.16);
+                const width = Math.random() * (maxWidth - minWidth) + minWidth;
+                const height = Math.random() * (maxHeight - minHeight) + minHeight;
+                if (usedArea + width * height > maxTotalArea) { continue; }
+
+                const margin = 40;
+                const maxX = CANVAS_WIDTH - width - margin;
+                const maxY = CANVAS_HEIGHT - height - margin;
+                if (maxX <= margin || maxY <= margin) { break; }
+
+                const x = Math.random() * (maxX - margin) + margin;
+                const y = Math.random() * (maxY - margin) + margin;
+                const candidate = { x, y, width, height };
+
+                if (terrainObstacles.some(ob => rectanglesOverlap(ob, candidate))) { continue; }
+
+                const paddedCandidate = {
+                    x: candidate.x - 32,
+                    y: candidate.y - 32,
+                    width: candidate.width + 64,
+                    height: candidate.height + 64
+                };
+                if (safeZones.some(zone => rectanglesOverlap(paddedCandidate, zone))) { continue; }
+
+                terrainObstacles.push(candidate);
+                usedArea += width * height;
+            }
+        }
+
+        function drawTerrainObstacles() {
+            if (!terrainObstacles.length) { return; }
+            ctx.save();
+            ctx.fillStyle = '#172135';
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < terrainObstacles.length; i++) {
+                const obstacle = terrainObstacles[i];
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            }
+            ctx.restore();
+        }
+
+        function resolveEntityObstacleCollision(entity, prevX, prevY) {
+            if (!terrainObstacles.length) { return; }
+            for (let i = 0; i < terrainObstacles.length; i++) {
+                const obstacle = terrainObstacles[i];
+                if (!rectanglesOverlap(entity, obstacle)) { continue; }
+                if (prevX + entity.width <= obstacle.x) {
+                    entity.x = obstacle.x - entity.width;
+                } else if (prevX >= obstacle.x + obstacle.width) {
+                    entity.x = obstacle.x + obstacle.width;
+                } else if (prevY + entity.height <= obstacle.y) {
+                    entity.y = obstacle.y - entity.height;
+                } else if (prevY >= obstacle.y + obstacle.height) {
+                    entity.y = obstacle.y + obstacle.height;
+                } else {
+                    const overlapLeft = entity.x + entity.width - obstacle.x;
+                    const overlapRight = obstacle.x + obstacle.width - entity.x;
+                    const overlapTop = entity.y + entity.height - obstacle.y;
+                    const overlapBottom = obstacle.y + obstacle.height - entity.y;
+                    const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+                    if (minOverlap === overlapLeft) { entity.x = obstacle.x - entity.width; }
+                    else if (minOverlap === overlapRight) { entity.x = obstacle.x + obstacle.width; }
+                    else if (minOverlap === overlapTop) { entity.y = obstacle.y - entity.height; }
+                    else { entity.y = obstacle.y + obstacle.height; }
+                }
+            }
+        }
+
+        function resolveProjectileObstacleCollision(projectile, prevX, prevY) {
+            if (!terrainObstacles.length) { return; }
+            for (let i = 0; i < terrainObstacles.length; i++) {
+                const obstacle = terrainObstacles[i];
+                if (!rectanglesOverlap(projectile, obstacle)) { continue; }
+                const overlapLeft = projectile.x + projectile.width - obstacle.x;
+                const overlapRight = obstacle.x + obstacle.width - projectile.x;
+                const overlapTop = projectile.y + projectile.height - obstacle.y;
+                const overlapBottom = obstacle.y + projectile.height - projectile.y;
+                const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+                if (minOverlap === overlapLeft) {
+                    projectile.x = obstacle.x - projectile.width;
+                    projectile.speedX = Math.abs(projectile.speedX);
+                } else if (minOverlap === overlapRight) {
+                    projectile.x = obstacle.x + obstacle.width;
+                    projectile.speedX = -Math.abs(projectile.speedX);
+                } else if (minOverlap === overlapTop) {
+                    projectile.y = obstacle.y - projectile.height;
+                    projectile.speedY = Math.abs(projectile.speedY);
+                } else {
+                    projectile.y = obstacle.y + projectile.height;
+                    projectile.speedY = -Math.abs(projectile.speedY);
+                }
+                break;
+            }
+        }
         let particles = [];
         function createParticle(x, y, count, color, sizeRange, speedRange, lifeRange, angleSpread = Math.PI * 2) {
-            for (let i = 0; i < count; i++) {
+            if (!count || MAX_PARTICLES <= 0) { return; }
+            const spawnCount = Math.min(count, Math.max(0, MAX_PARTICLES));
+            for (let i = 0; i < spawnCount; i++) {
                 const targetY = typeof mouseY === 'number' ? mouseY : y;
                 const targetX = typeof mouseX === 'number' ? mouseX : x + 1;
                 const angle = (Math.random() - 0.5) * angleSpread + Math.atan2(targetY - y, targetX - x);
@@ -1174,13 +1348,18 @@ body.endless-mode #gameCanvas {
                     color: color, rotation: Math.random() * Math.PI * 2, rotationSpeed: (Math.random() - 0.5) * 0.2
                 });
             }
+            if (particles.length > MAX_PARTICLES) {
+                particles.splice(0, particles.length - MAX_PARTICLES);
+            }
         }
 
         function updateAndDrawParticles(deltaTime) {
+            if (!particles.length) { return; }
+            const dtFactor = deltaTime / 16.67;
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
-                p.x += p.vx * (deltaTime / 16.67); p.y += p.vy * (deltaTime / 16.67);
-                p.vx *= 0.98; p.vy *= 0.98; p.life -= deltaTime; p.rotation += p.rotationSpeed * (deltaTime / 16.67);
+                p.x += p.vx * dtFactor; p.y += p.vy * dtFactor;
+                p.vx *= 0.98; p.vy *= 0.98; p.life -= deltaTime; p.rotation += p.rotationSpeed * dtFactor;
                 if (p.life <= 0) { particles.splice(i, 1); } else {
                     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation);
                     ctx.fillStyle = p.color; const opacity = Math.max(0, p.life / p.maxLife);
@@ -1209,6 +1388,13 @@ body.endless-mode #gameCanvas {
                 return;
             }
 
+            if (e.code === 'KeyP' && !mainGameContent.classList.contains('hidden')) {
+                if (!messageBox.classList.contains('visible') && !changelogPopup.classList.contains('visible') && !adminPasswordPopup.classList.contains('visible')) {
+                    toggleManualPause();
+                }
+                e.preventDefault();
+                return;
+            }
 
             if (e.code === 'Escape') {
                 if (changelogPopup.classList.contains('visible')) {
@@ -1235,32 +1421,60 @@ body.endless-mode #gameCanvas {
             }
 
             if (isGameEffectivelyPaused() && !mainGameContent.classList.contains('hidden')) {
-                 if (e.code === 'Space' || e.code.startsWith('Arrow') || ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyB', 'KeyX', 'KeyM'].includes(e.code)) {
+                 if (e.code === 'Space' || e.code.startsWith('Arrow') || ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyB', 'KeyX', 'KeyM', 'KeyQ'].includes(e.code)) {
                      e.preventDefault();
                  }
                  return;
             } else if (licensePopup.classList.contains('visible') || namePopup.classList.contains('visible') || loadingScreen.classList.contains('visible')) {
-                if (['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyX', 'KeyM'].includes(e.code)) {
+                if (['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyX', 'KeyM', 'KeyQ'].includes(e.code)) {
                     e.preventDefault();
                 }
                 return;
             }
 
-
             keysPressed[e.code] = true;
             if (['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) { e.preventDefault(); }
             if (e.code === 'KeyM') { toggleMouseAim(); }
             if (e.code === 'KeyX' && player1 && player1.smashReady && !player1.isSmashing) { player1.fireSmash(); }
+            if (e.code === 'KeyQ' && player1) {
+                if (player1.tryDash()) { e.preventDefault(); }
+            }
         });
         window.addEventListener('keyup', (e) => { keysPressed[e.code] = false; });
         canvas.addEventListener('mousemove', (e) => {
             if (isGameEffectivelyPaused()) return;
             const rect = canvas.getBoundingClientRect(); mouseX = e.clientX - rect.left; mouseY = e.clientY - rect.top;
         });
-        canvas.addEventListener('click', () => {
+        canvas.addEventListener('mousedown', () => {
             if (isGameEffectivelyPaused()) return;
+            mouseFireHeld = true;
             if (mouseAimActive && !aimbotActive && player1 && player1.health > 0) { player1.shoot(true); }
         });
+        canvas.addEventListener('touchstart', (e) => {
+            if (isGameEffectivelyPaused()) return;
+            const touch = e.changedTouches[0];
+            if (!touch) { return; }
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            mouseX = touch.clientX - rect.left;
+            mouseY = touch.clientY - rect.top;
+            mouseFireHeld = true;
+            if (mouseAimActive && !aimbotActive && player1 && player1.health > 0) { player1.shoot(true); }
+        }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => {
+            if (isGameEffectivelyPaused()) return;
+            const touch = e.changedTouches[0];
+            if (!touch) { return; }
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            mouseX = touch.clientX - rect.left;
+            mouseY = touch.clientY - rect.top;
+        }, { passive: false });
+        window.addEventListener('mouseup', () => { mouseFireHeld = false; });
+        canvas.addEventListener('mouseleave', () => { mouseFireHeld = false; });
+        canvas.addEventListener('touchend', () => { mouseFireHeld = false; });
+        canvas.addEventListener('touchcancel', () => { mouseFireHeld = false; });
+        window.addEventListener('blur', () => { mouseFireHeld = false; });
 
         function showPopup(element) {
             element.classList.remove('hidden');
@@ -1732,6 +1946,8 @@ body.endless-mode #gameCanvas {
                 this.x+=this.speedX*dtFactor; this.y+=this.speedY*dtFactor;
                 this.rotation += 0.1 * dtFactor;
 
+                resolveProjectileObstacleCollision(this, prevX, prevY);
+
                 if (this.x > CANVAS_WIDTH + this.width * 2 || this.x < -this.width * 2 || this.y > CANVAS_HEIGHT + this.height * 2 || this.y < -this.height * 2) {
                     const index = enemyProjectiles.indexOf(this);
                     if (index > -1) {
@@ -1766,6 +1982,14 @@ body.endless-mode #gameCanvas {
                 this.rapidFireActiveUntil = 0;
                 this.shieldActiveUntil = 0;
                 this.speedBoostActiveUntil = 0;
+                this.dashCooldown = 1200;
+                this.dashDuration = 160;
+                this.dashSpeedMultiplier = 5;
+                this.dashActive = false;
+                this.dashEndTime = 0;
+                this.nextDashTime = 0;
+                this.dashVelocityX = 0;
+                this.dashVelocityY = 0;
             }
 
             draw() {
@@ -1863,26 +2087,105 @@ body.endless-mode #gameCanvas {
             }
 
             move(deltaTime) {
-                let moveDx=0; let moveDy=0;
-                if(keysPressed[this.controls.left]){moveDx-=1;} if(keysPressed[this.controls.right]){moveDx+=1;}
-                if(keysPressed[this.controls.up]){moveDy-=1;} if(keysPressed[this.controls.down]){moveDy+=1;}
-                const targetSpeed = (moveDx!==0||moveDy!==0)?this.speed:0; const acceleration=0.15; this.currentSpeed+=(targetSpeed-this.currentSpeed)*acceleration;
-                const effectiveSpeed = this.currentSpeed*(deltaTime/(1000/60));
-                if(moveDx!==0||moveDy!==0){ const dist=Math.sqrt(moveDx*moveDx+moveDy*moveDy); const nDx=moveDx/dist; const nDy=moveDy/dist; this.x+=nDx*effectiveSpeed; this.y+=nDy*effectiveSpeed; this.lastMoveDx=nDx; this.lastMoveDy=nDy; }
-                this.x=Math.max(0,Math.min(this.x,CANVAS_WIDTH-this.width)); this.y=Math.max(0,Math.min(this.y,CANVAS_HEIGHT-this.height));
-                this.engineParticleTimer+=deltaTime;
-                if(this.engineParticleTimer>this.engineParticleInterval && this.currentSpeed > this.speed*0.2){
-                    this.engineParticleTimer=0; const particleCount=Math.floor(this.currentSpeed/this.speed*2)+1;
-                    for(let i=0;i<particleCount;i++){
-                        const angleOffset=(Math.random()-0.5)*0.5;
-                        const particleStartX = (this.x + this.width/2) - Math.cos(this.aimAngle) * (this.width * 0.4);
-                        const particleStartY = (this.y + this.height/2) - Math.sin(this.aimAngle) * (this.height * 0.4);
-                        const particleAngle=this.aimAngle+Math.PI+angleOffset;
-                        const speed=(Math.random()*1+1)*(this.currentSpeed/this.speed);
-                        this.engineParticles.push({ x:particleStartX, y:particleStartY, vx:Math.cos(particleAngle)*speed, vy:Math.sin(particleAngle)*speed, size:Math.random()*2+1, life:Math.random()*200+100, maxLife:300, color:`hsla(${20+Math.random()*30},100%,${60+Math.random()*20}%,${0.5+Math.random()*0.5})`, opacity:1 });
+                let moveDx = 0; let moveDy = 0;
+                if (keysPressed[this.controls.left]) { moveDx -= 1; }
+                if (keysPressed[this.controls.right]) { moveDx += 1; }
+                if (keysPressed[this.controls.up]) { moveDy -= 1; }
+                if (keysPressed[this.controls.down]) { moveDy += 1; }
+
+                const targetSpeed = (moveDx !== 0 || moveDy !== 0) ? this.speed : 0;
+                const acceleration = 0.15;
+                this.currentSpeed += (targetSpeed - this.currentSpeed) * acceleration;
+
+                const dtFactor = deltaTime / (1000/60);
+                const prevX = this.x;
+                const prevY = this.y;
+
+                if (moveDx !== 0 || moveDy !== 0) {
+                    const dist = Math.hypot(moveDx, moveDy) || 1;
+                    const nDx = moveDx / dist;
+                    const nDy = moveDy / dist;
+                    this.x += nDx * this.currentSpeed * dtFactor;
+                    this.y += nDy * this.currentSpeed * dtFactor;
+                    this.lastMoveDx = nDx;
+                    this.lastMoveDy = nDy;
+                }
+
+                this.x = Math.max(0, Math.min(this.x, CANVAS_WIDTH - this.width));
+                this.y = Math.max(0, Math.min(this.y, CANVAS_HEIGHT - this.height));
+                resolveEntityObstacleCollision(this, prevX, prevY);
+                this.x = Math.max(0, Math.min(this.x, CANVAS_WIDTH - this.width));
+                this.y = Math.max(0, Math.min(this.y, CANVAS_HEIGHT - this.height));
+
+                if (this.dashActive) {
+                    const dashPrevX = this.x;
+                    const dashPrevY = this.y;
+                    this.x += this.dashVelocityX * dtFactor;
+                    this.y += this.dashVelocityY * dtFactor;
+                    this.x = Math.max(0, Math.min(this.x, CANVAS_WIDTH - this.width));
+                    this.y = Math.max(0, Math.min(this.y, CANVAS_HEIGHT - this.height));
+                    resolveEntityObstacleCollision(this, dashPrevX, dashPrevY);
+                    this.x = Math.max(0, Math.min(this.x, CANVAS_WIDTH - this.width));
+                    this.y = Math.max(0, Math.min(this.y, CANVAS_HEIGHT - this.height));
+                    if (Date.now() >= this.dashEndTime) {
+                        this.dashActive = false;
+                        this.dashVelocityX = 0;
+                        this.dashVelocityY = 0;
                     }
                 }
-                for(let i=this.engineParticles.length-1;i>=0;i--){ const p=this.engineParticles[i]; p.x+=p.vx; p.y+=p.vy; p.life-=deltaTime; p.opacity=p.life/p.maxLife; if(p.life<=0)this.engineParticles.splice(i,1); }
+
+                this.engineParticleTimer += deltaTime;
+                if (this.engineParticleTimer > this.engineParticleInterval && this.currentSpeed > this.speed * 0.25) {
+                    this.engineParticleTimer = 0;
+                    const particleCount = Math.max(1, Math.floor(this.currentSpeed / this.speed));
+                    for (let i = 0; i < particleCount; i++) {
+                        const angleOffset = (Math.random() - 0.5) * 0.4;
+                        const particleStartX = (this.x + this.width/2) - Math.cos(this.aimAngle) * (this.width * 0.4);
+                        const particleStartY = (this.y + this.height/2) - Math.sin(this.aimAngle) * (this.height * 0.4);
+                        const particleAngle = this.aimAngle + Math.PI + angleOffset;
+                        const speed = (Math.random() * 0.8 + 0.6) * (this.currentSpeed / Math.max(this.speed, 0.01));
+                        this.engineParticles.push({
+                            x: particleStartX,
+                            y: particleStartY,
+                            vx: Math.cos(particleAngle) * speed,
+                            vy: Math.sin(particleAngle) * speed,
+                            size: Math.random() * 2 + 1,
+                            life: Math.random() * 180 + 120,
+                            maxLife: 220,
+                            color: `hsla(${20 + Math.random()*30},100%,${60 + Math.random()*20}%,${0.4 + Math.random()*0.4})`,
+                            opacity: 1
+                        });
+                    }
+                }
+                for (let i = this.engineParticles.length - 1; i >= 0; i--) {
+                    const p = this.engineParticles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= deltaTime;
+                    p.opacity = p.life / p.maxLife;
+                    if (p.life <= 0) { this.engineParticles.splice(i, 1); }
+                }
+            tryDash() {
+                const now = Date.now();
+                if (this.health <= 0 || this.dashActive || now < this.nextDashTime) { return false; }
+                let dirX = this.lastMoveDx;
+                let dirY = this.lastMoveDy;
+                if (dirX === 0 && dirY === 0) {
+                    dirX = Math.cos(this.aimAngle);
+                    dirY = Math.sin(this.aimAngle);
+                }
+                const length = Math.hypot(dirX, dirY);
+                if (!length) { return false; }
+                dirX /= length;
+                dirY /= length;
+                const dashSpeed = this.speed * this.dashSpeedMultiplier;
+                this.dashVelocityX = dirX * dashSpeed;
+                this.dashVelocityY = dirY * dashSpeed;
+                this.dashActive = true;
+                this.dashEndTime = now + this.dashDuration;
+                this.nextDashTime = now + this.dashCooldown;
+                createParticle(this.x + this.width/2, this.y + this.height/2, 12, 'rgba(148, 163, 255, 0.45)', [4,8], [2,5], [180,360]);
+                return true;
             }
 
             shoot(triggeredByClick = false) {
@@ -1891,9 +2194,15 @@ body.endless-mode #gameCanvas {
                 const actualShootDelay = aimbotActive ? AIMBOT_SHOOT_DELAY : currentShootDelay;
 
                 let attemptShot = false;
-                if (aimbotActive) { attemptShot = true; }
-                else if (mouseAimActive && triggeredByClick) { attemptShot = true; }
-                else if (!mouseAimActive && keysPressed[this.controls.shoot]) { attemptShot = true; }
+                if (mouseFireHeld) {
+                    attemptShot = true;
+                } else if (aimbotActive) {
+                    attemptShot = true;
+                } else if (mouseAimActive && triggeredByClick) {
+                    attemptShot = true;
+                } else if (keysPressed[this.controls.shoot]) {
+                    attemptShot = true;
+                }
 
                 if (attemptShot && (currentTime - this.lastShotTime > actualShootDelay)) {
                     this.lastShotTime = currentTime;
@@ -1992,6 +2301,9 @@ body.endless-mode #gameCanvas {
                 this.health = (this.isDivineProtectionActive && !fullReset) ? 1000 : (gameMode === 'hell' ? 200 : FOX_TYPES["Ranger"].health);
                 this.initialHealth = this.health;
                 this.projectiles = []; this.x = 50; this.y = CANVAS_HEIGHT/2 - this.height/2;
+                resolveEntityObstacleCollision(this, this.x, this.y);
+                this.x = Math.max(0, Math.min(this.x, CANVAS_WIDTH - this.width));
+                this.y = Math.max(0, Math.min(this.y, CANVAS_HEIGHT - this.height));
                 this.beamCharge = 0; this.beamReady = false; this.isFiringBeam = false; this.smashCharge = 0; this.smashReady = false; this.isSmashing = false; this.smashRadius = 0;
                 this.lastMoveDx = 1; this.lastMoveDy = 0; this.aimAngle = 0; this.beamTargetAngle = 0; this.aimbotTarget = null;
                 this.bulletCount = 1; this.engineParticles = []; this.currentSpeed = 0; this.shieldOpacity = 0;
@@ -1999,6 +2311,9 @@ body.endless-mode #gameCanvas {
                 this.rapidFireActiveUntil = 0; this.shootDelayBase = this.type.baseShootDelay;
                 this.shieldActiveUntil = 0;
                 this.speedBoostActiveUntil = 0; this.speed = this.type.baseSpeed;
+                this.dashActive = false;
+                this.dashVelocityX = 0; this.dashVelocityY = 0;
+                this.nextDashTime = 0; this.dashEndTime = 0;
                 if (fullReset) {
                     this.isDivineProtectionActive = false;
                     playerScore = 0;
@@ -2126,6 +2441,15 @@ body.endless-mode #gameCanvas {
             if (gameMode === 'endless' || gameMode === 'hell') { stageDisplay.textContent = `${gameMode.charAt(0).toUpperCase() + gameMode.slice(1)} Mode: Wave ${wave}`; }
             else { stageDisplay.textContent = `Stage ${stage}: Wave ${wave}`; }
 
+            if (wave === 1) {
+                generateTerrainObstacles(stage);
+                if (player1) {
+                    resolveEntityObstacleCollision(player1, player1.x, player1.y);
+                    player1.x = Math.max(0, Math.min(player1.x, CANVAS_WIDTH - player1.width));
+                    player1.y = Math.max(0, Math.min(player1.y, CANVAS_HEIGHT - player1.height));
+                }
+            }
+
             let baseTargetsForMode = (gameMode === 'hell') ? 3 : (gameMode === 'normal' ? 2 : 3);
             let stageIncrementFactor = (gameMode === 'hell') ? 2.2 : (gameMode === 'normal' ? 1.2 : 2);
             let waveIncrementFactor = (gameMode === 'hell') ? 1.2 : (gameMode === 'normal' ? 0.7 : 1);
@@ -2148,24 +2472,39 @@ body.endless-mode #gameCanvas {
         }
 
         function trySpawnPowerUp() {
-            if (gameRunning && !isGameEffectivelyPaused() && Date.now() >= nextPowerUpSpawnTime && powerUps.filter(p => p.type !== POWERUP_TYPES.HEALTH_PACK_GREEN && p.type !== POWERUP_TYPES.HEALTH_PACK_GOLDEN).length < 1) {
-                const x = Math.random()*(CANVAS_WIDTH-POWERUP_SIZE*2)+POWERUP_SIZE;
-                const y = Math.random()*(CANVAS_HEIGHT-POWERUP_SIZE*2)+POWERUP_SIZE;
-                const availablePowerUps = [POWERUP_TYPES.MULTI_SHOT, POWERUP_TYPES.RAPID_FIRE, POWERUP_TYPES.SHIELD, POWERUP_TYPES.SPEED_BOOST];
-                const randomType = availablePowerUps[Math.floor(Math.random() * availablePowerUps.length)];
-                powerUps.push(new PowerUp(x,y,randomType));
+            if (gameRunning && !isGameEffectivelyPaused() && Date.now() >= nextPowerUpSpawnTime && powerUps.filter(p => p.type != POWERUP_TYPES.HEALTH_PACK_GREEN && p.type !== POWERUP_TYPES.HEALTH_PACK_GOLDEN).length < 1) {
+                let attempts = 0; let x = 0; let y = 0;
+                do {
+                    x = Math.random()*(CANVAS_WIDTH-POWERUP_SIZE*2)+POWERUP_SIZE;
+                    y = Math.random()*(CANVAS_HEIGHT-POWERUP_SIZE*2)+POWERUP_SIZE;
+                } while (attempts++ < 12 && isRectOverlappingObstacles(x, y, POWERUP_SIZE, POWERUP_SIZE, 12));
+                if (!isRectOverlappingObstacles(x, y, POWERUP_SIZE, POWERUP_SIZE, 12)) {
+                    const availablePowerUps = [POWERUP_TYPES.MULTI_SHOT, POWERUP_TYPES.RAPID_FIRE, POWERUP_TYPES.SHIELD, POWERUP_TYPES.SPEED_BOOST];
+                    const randomType = availablePowerUps[Math.floor(Math.random() * availablePowerUps.length)];
+                    powerUps.push(new PowerUp(x,y,randomType));
+                }
                 setNextPowerupSpawnTime();
             }
             if (gameRunning && !isGameEffectivelyPaused() && Date.now() >= nextGreenHealthPackSpawnTime && powerUps.filter(p => p.type === POWERUP_TYPES.HEALTH_PACK_GREEN).length < 1) {
-                const x = Math.random()*(CANVAS_WIDTH-POWERUP_SIZE*2)+POWERUP_SIZE;
-                const y = Math.random()*(CANVAS_HEIGHT-POWERUP_SIZE*2)+POWERUP_SIZE;
-                powerUps.push(new PowerUp(x,y,POWERUP_TYPES.HEALTH_PACK_GREEN));
+                let attempts = 0; let x = 0; let y = 0;
+                do {
+                    x = Math.random()*(CANVAS_WIDTH-POWERUP_SIZE*2)+POWERUP_SIZE;
+                    y = Math.random()*(CANVAS_HEIGHT-POWERUP_SIZE*2)+POWERUP_SIZE;
+                } while (attempts++ < 12 && isRectOverlappingObstacles(x, y, POWERUP_SIZE, POWERUP_SIZE, 12));
+                if (!isRectOverlappingObstacles(x, y, POWERUP_SIZE, POWERUP_SIZE, 12)) {
+                    powerUps.push(new PowerUp(x,y,POWERUP_TYPES.HEALTH_PACK_GREEN));
+                }
                 setNextGreenHealthPackSpawnTime();
             }
             if (gameRunning && !isGameEffectivelyPaused() && Date.now() >= nextGoldenHealthPackSpawnTime && powerUps.filter(p => p.type === POWERUP_TYPES.HEALTH_PACK_GOLDEN).length < 1) {
-                const x = Math.random()*(CANVAS_WIDTH-POWERUP_SIZE*2)+POWERUP_SIZE;
-                const y = Math.random()*(CANVAS_HEIGHT-POWERUP_SIZE*2)+POWERUP_SIZE;
-                powerUps.push(new PowerUp(x,y,POWERUP_TYPES.HEALTH_PACK_GOLDEN));
+                let attempts = 0; let x = 0; let y = 0;
+                do {
+                    x = Math.random()*(CANVAS_WIDTH-POWERUP_SIZE*2)+POWERUP_SIZE;
+                    y = Math.random()*(CANVAS_HEIGHT-POWERUP_SIZE*2)+POWERUP_SIZE;
+                } while (attempts++ < 12 && isRectOverlappingObstacles(x, y, POWERUP_SIZE, POWERUP_SIZE, 12));
+                if (!isRectOverlappingObstacles(x, y, POWERUP_SIZE, POWERUP_SIZE, 12)) {
+                    powerUps.push(new PowerUp(x,y,POWERUP_TYPES.HEALTH_PACK_GOLDEN));
+                }
                 setNextGoldenHealthPackSpawnTime();
             }
         }
@@ -2178,7 +2517,28 @@ body.endless-mode #gameCanvas {
 
         function checkCollisions() {
             if (!player1 || player1.isSmashing) { return; }
-            player1.projectiles.forEach((p, pIndex) => { for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; if (p.x < target.x+target.width && p.x+p.width > target.x && p.y < target.y+target.height && p.y+p.height > target.y) { target.takeDamage(10); player1.projectiles.splice(pIndex,1); playerScore+=SCORE_PER_HIT; if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,15 + Math.floor(target.size/2),target.color,[3,target.size/2.5],[1.5,5],[350,800]); gameTargets.splice(tIndex,1); if(player1.isSmashing) { /* No screen shake if smash killed it */ } else { screenShake(5, 150); } } break; }}});
+            if (player1) {
+                for (let pIndex = player1.projectiles.length - 1; pIndex >= 0; pIndex--) {
+                    const projectile = player1.projectiles[pIndex];
+                    for (let tIndex = gameTargets.length - 1; tIndex >= 0; tIndex--) {
+                        const target = gameTargets[tIndex];
+                        if (projectile.x < target.x + target.width &&
+                            projectile.x + projectile.width > target.x &&
+                            projectile.y < target.y + target.height &&
+                            projectile.y + projectile.height > target.y) {
+                            target.takeDamage(10);
+                            player1.projectiles.splice(pIndex, 1);
+                            playerScore += SCORE_PER_HIT;
+                            if (target.health <= 0) {
+                                createParticle(target.x+target.width/2,target.y+target.height/2,15 + Math.floor(target.size/2),target.color,[3,target.size/2.5],[1.5,5],[350,800]);
+                                gameTargets.splice(tIndex,1);
+                                if(!player1.isSmashing) { screenShake(5, 150); }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
             if (player1.isFiringBeam) { const beamAngle = player1.beamTargetAngle; const beamLength = CANVAS_WIDTH*1.5; for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; const tCX = target.x+target.width/2; const tCY = target.y+target.height/2; const pCX = player1.x+player1.width/2; const pCY = player1.y+player1.height/2; const dx = tCX-pCX; const dy = tCY-pCY; const distToP = Math.sqrt(dx*dx+dy*dy); if (distToP < beamLength) { const angleToT = Math.atan2(dy,dx); const angleDiff = Math.abs(normalizeAngle(beamAngle-angleToT)); if (angleDiff < Math.atan2(BEAM_THICKNESS/2,distToP) || distToP < target.size*0.8 ) { target.takeDamage(player1.beamDamagePerFrame*(lastFrameTime-(player1.beamFrameTime||lastFrameTime))/(1000/60)); playerScore+=SCORE_PER_BEAM_FRAME; if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,15 + Math.floor(target.size/2),target.color,[3,target.size/2.5],[1.5,5],[350,800]); gameTargets.splice(tIndex,1); screenShake(3,100); }}}} player1.beamFrameTime = lastFrameTime; } else { player1.beamFrameTime = null; }
             for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; if (player1.x < target.x+target.width && player1.x+player1.width > target.x && player1.y < target.y+target.height && player1.y+player1.height > target.y) { player1.takeDamage(TARGET_CONTACT_DAMAGE); target.takeDamage(50); if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,10,target.color,[3,8],[2,5],[200,500]); gameTargets.splice(tIndex,1); screenShake(5,150); } else { const dx = target.x-player1.x; const dy = target.y-player1.y; const dist = Math.sqrt(dx*dx+dy*dy)||1; target.x+=(dx/dist)*10; target.y+=(dy/dist)*10; }}}
             for (let epIndex = enemyProjectiles.length-1; epIndex >= 0; epIndex--) { const ep = enemyProjectiles[epIndex]; if (player1.health > 0 && ep.x < player1.x+player1.width && ep.x+ep.width > player1.x && ep.y < player1.y+player1.height && ep.y+ep.height > player1.y) { player1.takeDamage(ep.damage); enemyProjectiles.splice(epIndex,1); }}
@@ -2208,6 +2568,7 @@ body.endless-mode #gameCanvas {
 
         function showGameCompletionPopup() {
             gameRunning = false; messageText.textContent = "You have successfully beat all the stages! Now you can choose to go into Hell Mode, or Endless Mode.";
+            setManualPause(false);
             codeInputSection.classList.add('hidden'); deathOptions.classList.add('hidden'); hellConfirmOptions.classList.add('hidden'); completionOptions.classList.remove('hidden');
             showPopup(messageBox); currentPopupAction = 'game_complete';
         }
@@ -2231,6 +2592,7 @@ body.endless-mode #gameCanvas {
         };
         function announceOutcome(message, isVictory) {
             gameRunning = false; messageText.textContent = message;
+            setManualPause(false);
             codeInputSection.classList.add('hidden'); completionOptions.classList.add('hidden'); hellConfirmOptions.classList.add('hidden'); deathOptions.classList.remove('hidden');
             actionButton1.textContent = "Respawn"; actionButton2.classList.remove('hidden'); actionButton2.textContent = "Revive";
             showPopup(messageBox); currentPopupAction = 'game_over_options';
@@ -2276,21 +2638,49 @@ body.endless-mode #gameCanvas {
             const dT = Math.min(50, (currentTime - lastFrameTime) || (1000/60)); lastFrameTime = currentTime;
 
             if (!isGameEffectivelyPaused()) {
-                trySpawnPowerUp(); trySpawnHellEnemies();
-                if (player1) { player1.update(dT); }
-                gameTargets.forEach(t => { if (player1) { t.update(player1.x,player1.y,dT,gameTargets); }});
-                enemyProjectiles.forEach((ep,i) => { ep.update(dT); });
-                powerUps.forEach((pu,i) => { if (pu.update(dT)) { powerUps.splice(i,1); } });
-                if (player1) { player1.projectiles.forEach(p => p.update(dT)); }
+                trySpawnPowerUp();
+                trySpawnHellEnemies();
+                if (player1) {
+                    player1.update(dT);
+                    const playerX = player1.x;
+                    const playerY = player1.y;
+                    for (let i = gameTargets.length - 1; i >= 0; i--) {
+                        gameTargets[i].update(playerX, playerY, dT, gameTargets);
+                    }
+                } else {
+                    for (let i = gameTargets.length - 1; i >= 0; i--) {
+                        gameTargets[i].update(0, 0, dT, gameTargets);
+                    }
+                }
+                for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+                    enemyProjectiles[i].update(dT);
+                }
+                for (let i = powerUps.length - 1; i >= 0; i--) {
+                    if (powerUps[i].update(dT)) {
+                        powerUps.splice(i, 1);
+                    }
+                }
                 checkCollisions();
             }
 
-            ctx.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT); updateAndDrawParticles(dT);
+            ctx.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+            drawTerrainObstacles();
             if (player1) { player1.draw(); }
-            gameTargets.forEach(t => { t.draw(); });
-            enemyProjectiles.forEach((ep) => { ep.draw(); });
-            powerUps.forEach((pu) => { pu.draw(); });
-            if (player1) { player1.projectiles.forEach(p => p.draw()); }
+            for (let i = 0; i < gameTargets.length; i++) {
+                gameTargets[i].draw();
+            }
+            for (let i = 0; i < enemyProjectiles.length; i++) {
+                enemyProjectiles[i].draw();
+            }
+            for (let i = 0; i < powerUps.length; i++) {
+                powerUps[i].draw();
+            }
+            if (player1) {
+                for (let i = 0; i < player1.projectiles.length; i++) {
+                    player1.projectiles[i].draw();
+                }
+            }
+            updateAndDrawParticles(dT);
 
             requestAnimationFrame(gameLoop);
         };
@@ -2335,11 +2725,14 @@ body.endless-mode #gameCanvas {
             }
             newHeight = newWidth / aspectRatio;
 
-            newWidth = Math.max(320, Math.min(newWidth, 2560));
-            newHeight = Math.max(180, Math.min(newHeight, 1440));
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.style.width = `${newWidth}px`;
+            canvas.style.height = `${newHeight}px`;
+            canvas.width = Math.round(newWidth * dpr);
+            canvas.height = Math.round(newHeight * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.imageSmoothingEnabled = false;
 
-            canvas.width = newWidth;
-            canvas.height = newHeight;
             CANVAS_WIDTH = newWidth;
             CANVAS_HEIGHT = newHeight;
 
