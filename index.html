@@ -22,7 +22,7 @@
             --canvas-border: #6900cc;
             --glow-strong: rgba(105, 0, 204, 0.7);
             --glow-soft: rgba(255, 255, 255, 0.18);
-            --button-radius: 2rem;
+            --button-radius: 0.75rem;
             --panel-blur: 18px;
             --star-color-1: rgba(255, 255, 255, 0.65);
             --star-color-2: rgba(148, 163, 255, 0.55);
@@ -53,7 +53,6 @@
             overflow-x: hidden;
             position: relative;
             transition: background 0.8s ease, color 0.4s ease;
-            text-shadow: 0 0 10px rgba(125, 249, 255, 0.3);
         }
 
         body::before {
@@ -74,7 +73,7 @@
             background-repeat: repeat;
             background-size: 150px 150px, 200px 200px, 500px 500px, 300px 300px, 220px 220px, 130px 130px;
             background-position: 0 0, 10px 10px, 30px 50px, 110px 250px, 60px 90px, 20px 180px;
-            animation: starsAnim var(--star-speed) linear infinite, aurora-2 6s linear infinite;
+            animation: starsAnim var(--star-speed) linear infinite;
         }
 
         body::after {
@@ -100,15 +99,6 @@
             0% { transform: translate(-10%, -8%) scale(1.05) rotate(0deg); opacity: 0.55; }
             50% { transform: translate(6%, 4%) scale(1.1) rotate(2deg); opacity: 0.75; }
             100% { transform: translate(-4%, 6%) scale(1.04) rotate(-2deg); opacity: 0.6; }
-        }
-
-        @keyframes aurora-2 {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
         }
 
         body.hell-mode {
@@ -299,12 +289,11 @@
             max-width: 100%;
             padding: 0.25rem;
             background: var(--panel-bg);
-            border-radius: 2rem;
+            border-radius: 0.75rem;
             box-shadow: 0 20px 45px rgba(2, 6, 23, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(var(--panel-blur));
             border: 1px solid var(--panel-border);
-            transition: background 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease, transform 0.3s ease;
-            animation: float 6s ease-in-out infinite;
+            transition: background 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease;
         }
         .modal-popup {
             position: fixed;
@@ -312,7 +301,7 @@
             left: 50%;
             transform: translate(-50%, -50%) scale(0.95);
             background: rgba(6, 11, 30, 0.92);
-            color: var(--text-main); padding: 2rem 2.5rem; border-radius: 2rem;
+            color: var(--text-main); padding: 2rem 2.5rem; border-radius: 1rem;
             text-align: center; font-size: 1.25rem; z-index: 100;
             box-shadow: 0 35px 65px rgba(2, 6, 23, 0.6), 0 0 45px rgba(124, 58, 237, 0.45);
             width: 90%; max-width: 600px;
@@ -648,63 +637,11 @@
         .button:hover {
             transform: translateY(-3px) scale(1.01);
             box-shadow: 0 14px 24px rgba(2, 6, 23, 0.45);
-            animation: glowing-border 2s infinite, jello 1s;
         }
         .button:hover::before { opacity: 0.9; animation: buttonSweep 0.85s ease forwards; }
         .button:active {
             transform: translateY(0px) scale(0.99);
             box-shadow: 0 8px 16px rgba(2, 6, 23, 0.35);
-        }
-
-        @keyframes glowing-border {
-            0% {
-                border-color: #ffeb3b;
-                box-shadow: 0 0 10px #ffeb3b;
-            }
-            50% {
-                border-color: #ff5722;
-                box-shadow: 0 0 20px #ff5722;
-            }
-            100% {
-                border-color: #ffeb3b;
-                box-shadow: 0 0 10px #ffeb3b;
-            }
-        }
-
-        @keyframes jello {
-            0% {
-                transform: scale(1);
-            }
-            30% {
-                transform: scale(1.25);
-            }
-            40% {
-                transform: scale(0.9);
-            }
-            50% {
-                transform: scale(1.15);
-            }
-            65% {
-                transform: scale(0.95);
-            }
-            75% {
-                transform: scale(1.05);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-            100% {
-                transform: translateY(0px);
-            }
         }
 
         .button-primary { border-color: var(--accent-warm); color: var(--accent-warm); background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(255, 255, 255, 0)); }
@@ -1431,8 +1368,7 @@
                     x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
                     size: Math.random() * (sizeRange[1] - sizeRange[0]) + sizeRange[0],
                     life: Math.random() * (lifeRange[1] - lifeRange[0]) + lifeRange[0], maxLife: lifeRange[1],
-                    color: color, rotation: Math.random() * Math.PI * 2, rotationSpeed: (Math.random() - 0.5) * 0.2,
-                    shape: 'triangle'
+                    color: color, rotation: Math.random() * Math.PI * 2, rotationSpeed: (Math.random() - 0.5) * 0.2
                 });
             }
         }
@@ -1445,17 +1381,7 @@
                 if (p.life <= 0) { particles.splice(i, 1); } else {
                     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation);
                     ctx.fillStyle = p.color; const opacity = Math.max(0, p.life / p.maxLife);
-                    ctx.globalAlpha = opacity * 0.8;
-                    if (p.shape === 'triangle') {
-                        ctx.beginPath();
-                        ctx.moveTo(0, -p.size / 2);
-                        ctx.lineTo(p.size / 2, p.size / 2);
-                        ctx.lineTo(-p.size / 2, p.size / 2);
-                        ctx.closePath();
-                        ctx.fill();
-                    } else {
-                        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-                    }
+                    ctx.globalAlpha = opacity * 0.8; ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
                     ctx.restore();
                 }
             }
@@ -2474,7 +2400,7 @@
 
         function checkCollisions() {
             if (!player1 || player1.isSmashing) { return; }
-            player1.projectiles.forEach((p, pIndex) => { for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; if (p.x < target.x+target.width && p.x+p.width > target.x && p.y < target.y+target.height && p.y+p.height > target.y) { target.takeDamage(10); player1.projectiles.splice(pIndex,1); playerScore+=SCORE_PER_HIT; if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,15 + Math.floor(target.size/2),target.color,[3,target.size/2.5],[1.5,5],[350,800]); gameTargets.splice(tIndex,1); if(player1.isSmashing) { /* No screen shake if smash killed it */ } else { screenShake(10, 200); } } break; }}});
+            player1.projectiles.forEach((p, pIndex) => { for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; if (p.x < target.x+target.width && p.x+p.width > target.x && p.y < target.y+target.height && p.y+p.height > target.y) { target.takeDamage(10); player1.projectiles.splice(pIndex,1); playerScore+=SCORE_PER_HIT; if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,15 + Math.floor(target.size/2),target.color,[3,target.size/2.5],[1.5,5],[350,800]); gameTargets.splice(tIndex,1); if(player1.isSmashing) { /* No screen shake if smash killed it */ } else { screenShake(5, 150); } } break; }}});
             if (player1.isFiringBeam) { const beamAngle = player1.beamTargetAngle; const beamLength = CANVAS_WIDTH*1.5; for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; const tCX = target.x+target.width/2; const tCY = target.y+target.height/2; const pCX = player1.x+player1.width/2; const pCY = player1.y+player1.height/2; const dx = tCX-pCX; const dy = tCY-pCY; const distToP = Math.sqrt(dx*dx+dy*dy); if (distToP < beamLength) { const angleToT = Math.atan2(dy,dx); const angleDiff = Math.abs(normalizeAngle(beamAngle-angleToT)); if (angleDiff < Math.atan2(BEAM_THICKNESS/2,distToP) || distToP < target.size*0.8 ) { target.takeDamage(player1.beamDamagePerFrame*(lastFrameTime-(player1.beamFrameTime||lastFrameTime))/(1000/60)); playerScore+=SCORE_PER_BEAM_FRAME; if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,15 + Math.floor(target.size/2),target.color,[3,target.size/2.5],[1.5,5],[350,800]); gameTargets.splice(tIndex,1); screenShake(3,100); }}}} player1.beamFrameTime = lastFrameTime; } else { player1.beamFrameTime = null; }
             for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; if (player1.x < target.x+target.width && player1.x+player1.width > target.x && player1.y < target.y+target.height && player1.y+player1.height > target.y) { player1.takeDamage(TARGET_CONTACT_DAMAGE); target.takeDamage(50); if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,10,target.color,[3,8],[2,5],[200,500]); gameTargets.splice(tIndex,1); screenShake(5,150); } else { const dx = target.x-player1.x; const dy = target.y-player1.y; const dist = Math.sqrt(dx*dx+dy*dy)||1; target.x+=(dx/dist)*10; target.y+=(dy/dist)*10; }}}
             for (let epIndex = enemyProjectiles.length-1; epIndex >= 0; epIndex--) { const ep = enemyProjectiles[epIndex]; if (player1.health > 0 && ep.x < player1.x+player1.width && ep.x+ep.width > player1.x && ep.y < player1.y+player1.height && ep.y+ep.height > player1.y) { player1.takeDamage(ep.damage); enemyProjectiles.splice(epIndex,1); }}
