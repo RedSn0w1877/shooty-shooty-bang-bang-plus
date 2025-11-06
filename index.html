@@ -27,6 +27,8 @@
     --star-primary: rgba(255, 255, 255, 0.95);
     --star-secondary: rgba(125, 211, 252, 0.85);
     --star-tertiary: rgba(244, 114, 182, 0.75);
+    --light-color-default: rgba(139, 92, 246, 0.55);
+    --light-falloff-default: rgba(4, 7, 24, 0.92);
 }
 body {
     font-family: 'Outfit', 'Space Grotesk', sans-serif;
@@ -730,6 +732,9 @@ body.endless-mode #gameCanvas {
 </style>
 </head>
 <body class="select-none" data-theme="aurora">
+    <div id="gradientOverlay" class="gradient-overlay"></div>
+    <canvas id="backgroundCanvas" class="cosmic-background"></canvas>
+    <div id="lightingOverlay" class="lighting-overlay"></div>
     <div id="versionDisplay" class="version-box">V6.5</div>
     <div id="tempPopup" class="hidden"></div>
  
@@ -971,6 +976,226 @@ body.endless-mode #gameCanvas {
         const closeAdminPasswordPopup = document.getElementById('closeAdminPasswordPopup');
         const adminPasswordError = document.getElementById('adminPasswordError');
 
+        const backgroundCanvas = document.getElementById('backgroundCanvas');
+        const backgroundCtx = backgroundCanvas ? backgroundCanvas.getContext('2d') : null;
+        const gradientOverlay = document.getElementById('gradientOverlay');
+        const lightingOverlay = document.getElementById('lightingOverlay');
+
+        const fallbackStarColor = { r: 230, g: 240, b: 255 };
+        let starPalette = [fallbackStarColor, fallbackStarColor, fallbackStarColor];
+        let stars = [];
+        let starfieldAnimationActive = false;
+        let lastStarTimestamp = 0;
+        let lightColor = 'rgba(139, 92, 246, 0.55)';
+        let lightFalloffColor = 'rgba(4, 7, 24, 0.92)';
+        let canvasRect = null;
+        let lastCanvasRectSample = 0;
+        let player1 = null;
+        let CANVAS_WIDTH = 800;
+        let CANVAS_HEIGHT = 600;
+
+        const colorParserCanvas = document.createElement('canvas');
+        const colorParserCtx = colorParserCanvas.getContext('2d');
+
+        function parseCssColor(color) {
+            if (!color) { return fallbackStarColor; }
+            colorParserCtx.fillStyle = '#ffffff';
+            colorParserCtx.fillStyle = color.trim();
+            const normalized = colorParserCtx.fillStyle;
+            if (normalized.startsWith('#')) {
+                let hex = normalized.slice(1);
+                if (hex.length === 3) {
+                    hex = hex.split('').map(ch => ch + ch).join('');
+                }
+                const num = parseInt(hex, 16);
+                return {
+                    r: (num >> 16) & 255,
+                    g: (num >> 8) & 255,
+                    b: num & 255
+                };
+            }
+            const match = normalized.match(/rgba?\(([^)]+)\)/i);
+            if (!match) { return fallbackStarColor; }
+            const parts = match[1].split(',').map(p => parseFloat(p.trim()));
+            return {
+                r: parts[0] || 0,
+                g: parts[1] || 0,
+                b: parts[2] || 0
+            };
+        }
+
+        function convertColorWithAlpha(color, alpha = 1) {
+            if (!color) { return `rgba(139, 92, 246, ${alpha})`; }
+            colorParserCtx.fillStyle = '#ffffff';
+            colorParserCtx.fillStyle = color.trim();
+            const normalized = colorParserCtx.fillStyle;
+            if (normalized.startsWith('#')) {
+                let hex = normalized.slice(1);
+                if (hex.length === 3) {
+                    hex = hex.split('').map(ch => ch + ch).join('');
+                }
+                const num = parseInt(hex, 16);
+                const r = (num >> 16) & 255;
+                const g = (num >> 8) & 255;
+                const b = num & 255;
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            }
+            const match = normalized.match(/rgba?\(([^)]+)\)/i);
+            if (!match) { return `rgba(139, 92, 246, ${alpha})`; }
+            const parts = match[1].split(',').map(p => parseFloat(p.trim()));
+            const r = parts[0] || 0;
+            const g = parts[1] || 0;
+            const b = parts[2] || 0;
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function refreshStarPalette() {
+            if (!backgroundCtx) { return; }
+            const styles = getComputedStyle(document.body);
+            starPalette = [
+                parseCssColor(styles.getPropertyValue('--star-primary')),
+                parseCssColor(styles.getPropertyValue('--star-secondary')),
+                parseCssColor(styles.getPropertyValue('--star-tertiary'))
+            ];
+            const accentStrong = styles.getPropertyValue('--accent-strong') || styles.getPropertyValue('--accent');
+            const panelColor = styles.getPropertyValue('--panel-bg') || 'rgba(4, 7, 24, 0.92)';
+            lightColor = convertColorWithAlpha(accentStrong || 'rgba(139, 92, 246, 1)', 0.55);
+            lightFalloffColor = convertColorWithAlpha(panelColor, 0.92);
+        }
+
+        function resizeBackgroundCanvas() {
+            if (!backgroundCanvas) { return; }
+            backgroundCanvas.width = window.innerWidth;
+            backgroundCanvas.height = window.innerHeight;
+        }
+
+        function initStarfield() {
+            if (!backgroundCanvas || !backgroundCtx) { return; }
+            const width = backgroundCanvas.width;
+            const height = backgroundCanvas.height;
+            const layerConfigs = [
+                { count: Math.max(60, Math.floor(width / 18)), speed: 0.015, size: [0.75, 1.6], drift: 0.018 },
+                { count: Math.max(45, Math.floor(width / 22)), speed: 0.025, size: [1.0, 2.2], drift: 0.03 },
+                { count: Math.max(30, Math.floor(width / 28)), speed: 0.04, size: [1.4, 2.9], drift: 0.045 }
+            ];
+            stars = [];
+            layerConfigs.forEach((config, layerIndex) => {
+                for (let i = 0; i < config.count; i++) {
+                    const size = config.size[0] + Math.random() * (config.size[1] - config.size[0]);
+                    stars.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size,
+                        speed: config.speed * (0.6 + Math.random() * 0.8),
+                        drift: config.drift * (Math.random() * 0.6 + 0.4) * (Math.random() < 0.5 ? -1 : 1),
+                        twinkleSpeed: 0.001 + Math.random() * 0.0012,
+                        twinklePhase: Math.random() * Math.PI * 2,
+                        baseAlpha: 0.4 + Math.random() * 0.45,
+                        paletteIndex: (layerIndex + i) % starPalette.length
+                    });
+                }
+            });
+            lastStarTimestamp = 0;
+        }
+
+        function animateStarfield(timestamp) {
+            if (!backgroundCtx || !backgroundCanvas) { return; }
+            if (!lastStarTimestamp) { lastStarTimestamp = timestamp; }
+            const delta = Math.min(50, timestamp - lastStarTimestamp);
+            lastStarTimestamp = timestamp;
+
+            const width = backgroundCanvas.width || window.innerWidth;
+            const height = backgroundCanvas.height || window.innerHeight;
+            backgroundCtx.clearRect(0, 0, width, height);
+            backgroundCtx.save();
+            backgroundCtx.globalCompositeOperation = 'lighter';
+
+            stars.forEach(star => {
+                star.y += star.speed * delta;
+                star.x += star.drift * delta;
+                if (star.y > height + star.size) {
+                    star.y = -star.size;
+                    star.x = Math.random() * width;
+                }
+                if (star.x > width + star.size) { star.x = -star.size; }
+                if (star.x < -star.size) { star.x = width + star.size; }
+                star.twinklePhase += star.twinkleSpeed * delta;
+                const twinkle = 0.6 + 0.4 * Math.sin(star.twinklePhase);
+                const paletteColor = starPalette[star.paletteIndex % starPalette.length] || fallbackStarColor;
+                const alpha = Math.min(1, Math.max(0.2, star.baseAlpha * twinkle));
+                backgroundCtx.fillStyle = `rgba(${paletteColor.r}, ${paletteColor.g}, ${paletteColor.b}, ${alpha})`;
+                backgroundCtx.beginPath();
+                backgroundCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                backgroundCtx.fill();
+            });
+
+            backgroundCtx.restore();
+            requestAnimationFrame(animateStarfield);
+        }
+
+        function ensureStarfieldAnimation() {
+            if (!backgroundCtx || starfieldAnimationActive) { return; }
+            starfieldAnimationActive = true;
+            requestAnimationFrame(ts => {
+                lastStarTimestamp = ts;
+                animateStarfield(ts);
+            });
+        }
+
+        function updateCanvasRect(force = false) {
+            const now = performance.now();
+            if (!force && now - lastCanvasRectSample < 250) { return; }
+            canvasRect = canvas.getBoundingClientRect();
+            lastCanvasRectSample = now;
+        }
+
+        function updateLightingTheme(forceRect = false) {
+            if (!lightingOverlay) { return; }
+            const styles = getComputedStyle(document.body);
+            const accentStrong = styles.getPropertyValue('--accent-strong') || styles.getPropertyValue('--accent');
+            const panelColor = styles.getPropertyValue('--panel-bg') || 'rgba(4, 7, 24, 0.92)';
+            if (gradientOverlay) {
+                const overlayBackground = styles.getPropertyValue('--bg-overlay');
+                if (overlayBackground) {
+                    gradientOverlay.style.background = overlayBackground;
+                }
+            }
+            lightColor = convertColorWithAlpha(accentStrong || 'rgba(139, 92, 246, 1)', 0.6);
+            lightFalloffColor = convertColorWithAlpha(panelColor, 0.88);
+            updateDynamicLighting(forceRect);
+        }
+
+        function updateDynamicLighting(forceRect = false) {
+            if (!lightingOverlay) { return; }
+            if (forceRect || !canvasRect) { updateCanvasRect(true); }
+            else { updateCanvasRect(); }
+
+            let xPercent = 50;
+            let yPercent = 50;
+            let opacity = 0.5;
+            if (canvasRect && canvasRect.width > 0 && canvasRect.height > 0) {
+                const centerX = player1 ? (player1.x + player1.width / 2) / CANVAS_WIDTH : 0.5;
+                const centerY = player1 ? (player1.y + player1.height / 2) / CANVAS_HEIGHT : 0.5;
+                xPercent = Math.max(0, Math.min(100, centerX * 100));
+                yPercent = Math.max(0, Math.min(100, centerY * 100));
+                opacity = player1 ? (player1.isDashing ? 0.9 : 0.65) : 0.5;
+            }
+            lightingOverlay.style.opacity = opacity;
+            lightingOverlay.style.filter = player1 && player1.isDashing ? 'brightness(1.35)' : 'brightness(1)';
+            lightingOverlay.style.background = `radial-gradient(circle at ${xPercent}% ${yPercent}%, ${lightColor} 0%, rgba(15, 23, 42, 0.08) 42%, ${lightFalloffColor} 78%)`;
+        }
+
+        window.addEventListener('resize', () => {
+            resizeBackgroundCanvas();
+            initStarfield();
+            updateCanvasRect(true);
+            updateDynamicLighting(true);
+        });
+
+        resizeBackgroundCanvas();
+        initStarfield();
+        ensureStarfieldAnimation();
+
         const themeCards = document.querySelectorAll('[data-theme-option]');
         const activeThemeName = document.getElementById('activeThemeName');
         const themeNames = {
@@ -1003,6 +1228,8 @@ body.endless-mode #gameCanvas {
             if (!fromMode) {
                 document.body.classList.remove('hell-mode', 'endless-mode');
             }
+            refreshStarPalette();
+            updateLightingTheme(true);
         }
 
         applyTheme(storedTheme, { persist: false });
@@ -1019,8 +1246,6 @@ body.endless-mode #gameCanvas {
         });
 
         const GAME_VERSION = "v6.5";
-        let CANVAS_WIDTH = 800;
-        let CANVAS_HEIGHT = 600;
         const PLAYER_WIDTH = 30;
         const PLAYER_HEIGHT = 30;
         const PROJECTILE_WIDTH = 10;
@@ -2170,7 +2395,6 @@ body.endless-mode #gameCanvas {
             }
         }
 
-        let player1;
         let lastFrameTime = 0;
 
         function spawnTargets(count, isInitialSpawn = true) {
@@ -2367,6 +2591,7 @@ body.endless-mode #gameCanvas {
             powerUps.forEach((pu) => { pu.draw(); });
             if (player1) { player1.projectiles.forEach(p => p.draw()); }
 
+            updateDynamicLighting();
             requestAnimationFrame(gameLoop);
         };
 
@@ -2424,6 +2649,8 @@ body.endless-mode #gameCanvas {
                 player1.smashMaxRadius = Math.max(CANVAS_WIDTH, CANVAS_HEIGHT) * 0.8;
                 player1.smashExpansionSpeed = player1.smashMaxRadius / 50;
             }
+            updateCanvasRect(true);
+            updateDynamicLighting(true);
             updateUI();
         };
 
