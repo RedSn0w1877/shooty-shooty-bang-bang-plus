@@ -1237,11 +1237,6 @@ body.endless-mode #gameCanvas {
         });
         canvas.addEventListener('mousedown', (e) => {
             if (isGameEffectivelyPaused() || e.button !== 0) return;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = rect.width ? canvas.width / rect.width : 1;
-            const scaleY = rect.height ? canvas.height / rect.height : 1;
-            mouseX = (e.clientX - rect.left) * scaleX;
-            mouseY = (e.clientY - rect.top) * scaleY;
             mouseShootActive = true;
             if (mouseAimActive && !aimbotActive && player1 && player1.health > 0) { player1.shoot(true); }
         });
@@ -2041,12 +2036,6 @@ body.endless-mode #gameCanvas {
                 if (this.isDivineProtectionActive && this.health < 20 && this.health > 0) {
                     this.health = 1000;
                     updateUI();
-                }
-
-                for (let i = this.dashTrail.length - 1; i >= 0; i--) {
-                    const trail = this.dashTrail[i];
-                    trail.life -= deltaTime;
-                    if (trail.life <= 0) { this.dashTrail.splice(i, 1); }
                 }
 
                 this.updateAimDirection(deltaTime); this.move(deltaTime); this.shoot();
