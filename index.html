@@ -49,43 +49,6 @@ body::before,
 body::after {
     display: none;
 }
-
-.gradient-overlay,
-.cosmic-background,
-.lighting-overlay {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    width: 100vw;
-    height: 100vh;
-    z-index: -5;
-}
-
-.gradient-overlay {
-    z-index: -5;
-    background: var(--bg-overlay);
-    background-size: 220% 220%;
-    animation: gradientDrift 80s ease-in-out infinite;
-    opacity: 0.9;
-}
-
-.cosmic-background {
-    z-index: -4;
-    opacity: 0.8;
-}
-
-.lighting-overlay {
-    z-index: -3;
-    mix-blend-mode: screen;
-    transition: opacity 0.45s ease, filter 0.45s ease;
-    opacity: 0.55;
-}
-
-@keyframes gradientDrift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
 body[data-theme="aurora"] {
     --bg-gradient: radial-gradient(120% 120% at 50% 5%, rgba(112, 75, 217, 0.6), rgba(7, 12, 36, 0.96));
     --bg-overlay: linear-gradient(200deg, rgba(16, 22, 60, 0.85) 0%, rgba(4, 7, 24, 0.95) 55%, rgba(2, 4, 16, 0.98) 100%);
@@ -1499,11 +1462,6 @@ body.endless-mode #gameCanvas {
         });
         canvas.addEventListener('mousedown', (e) => {
             if (isGameEffectivelyPaused() || e.button !== 0) return;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = rect.width ? canvas.width / rect.width : 1;
-            const scaleY = rect.height ? canvas.height / rect.height : 1;
-            mouseX = (e.clientX - rect.left) * scaleX;
-            mouseY = (e.clientY - rect.top) * scaleY;
             mouseShootActive = true;
             if (mouseAimActive && !aimbotActive && player1 && player1.health > 0) { player1.shoot(true); }
         });
@@ -2305,12 +2263,6 @@ body.endless-mode #gameCanvas {
                     updateUI();
                 }
 
-                for (let i = this.dashTrail.length - 1; i >= 0; i--) {
-                    const trail = this.dashTrail[i];
-                    trail.life -= deltaTime;
-                    if (trail.life <= 0) { this.dashTrail.splice(i, 1); }
-                }
-
                 this.updateAimDirection(deltaTime); this.move(deltaTime); this.shoot();
                 if (!this.beamReady && !this.isFiringBeam) { this.beamCharge += deltaTime; if (this.beamCharge >= this.beamChargeMax) { this.beamCharge = this.beamChargeMax; this.beamReady = true;} }
                 if (!this.smashReady && !this.isSmashing) { this.smashCharge += deltaTime; if (this.smashCharge >= this.smashChargeMax) { this.smashCharge = this.smashChargeMax; this.smashReady = true;}}
@@ -2686,16 +2638,10 @@ body.endless-mode #gameCanvas {
             newWidth = Math.max(320, Math.min(newWidth, 2560));
             newHeight = Math.max(180, Math.min(newHeight, 1440));
 
-            const displayWidth = Math.round(newWidth);
-            const displayHeight = Math.round(newHeight);
-
-            canvas.style.width = `${displayWidth}px`;
-            canvas.style.height = `${displayHeight}px`;
-
-            canvas.width = displayWidth;
-            canvas.height = displayHeight;
-            CANVAS_WIDTH = displayWidth;
-            CANVAS_HEIGHT = displayHeight;
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            CANVAS_WIDTH = newWidth;
+            CANVAS_HEIGHT = newHeight;
 
             if (player1) {
                 player1.x = Math.max(0, Math.min(player1.x, CANVAS_WIDTH - player1.width));
