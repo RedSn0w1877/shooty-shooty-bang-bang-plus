@@ -49,219 +49,6 @@ body::before,
 body::after {
     display: none;
 }
-
-.gradient-overlay,
-.cosmic-background,
-.lighting-overlay {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    width: 100vw;
-    height: 100vh;
-    z-index: -5;
-}
-
-.gradient-overlay {
-    z-index: -5;
-    background: var(--bg-overlay);
-    background-size: 220% 220%;
-    animation: gradientDrift 80s ease-in-out infinite;
-    opacity: 0.9;
-}
-
-.cosmic-background {
-    z-index: -4;
-    opacity: 0.8;
-}
-
-.lighting-overlay {
-    z-index: -3;
-    mix-blend-mode: screen;
-    transition: opacity 0.45s ease, filter 0.45s ease;
-    opacity: 0.55;
-}
-
-.lobby-overlay {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(6, 11, 30, 0.88);
-    backdrop-filter: blur(6px);
-    z-index: 20;
-    transition: opacity 0.35s ease;
-}
-
-.lobby-card {
-    width: min(520px, 90vw);
-    padding: 2.5rem 2.75rem;
-    border-radius: 1.5rem;
-    background: rgba(12, 18, 44, 0.92);
-    box-shadow: 0 22px 60px rgba(8, 12, 28, 0.65);
-    border: 1px solid rgba(148, 163, 255, 0.18);
-}
-
-.lobby-header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    margin-bottom: 1.75rem;
-}
-
-.lobby-title {
-    font-size: clamp(1.75rem, 2.4vw, 2.25rem);
-    font-weight: 700;
-    letter-spacing: 0.04em;
-}
-
-.lobby-subtitle {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-}
-
-.lobby-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.lobby-input-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.75rem;
-    align-items: center;
-}
-
-.lobby-input {
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(148, 163, 255, 0.24);
-    border-radius: 0.9rem;
-    color: var(--text-primary);
-    padding: 0.85rem 1.1rem;
-    font-size: 1rem;
-}
-
-.lobby-input:focus {
-    outline: none;
-    border-color: var(--accent-strong);
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18);
-}
-
-.lobby-button-row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-}
-
-.lobby-secondary {
-    border: 1px solid rgba(148, 163, 255, 0.25);
-    background: rgba(17, 24, 39, 0.72);
-    color: var(--text-primary);
-    border-radius: 0.9rem;
-    padding: 0.85rem 1.1rem;
-    font-weight: 600;
-    transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.lobby-secondary:hover {
-    background: rgba(30, 41, 59, 0.85);
-    transform: translateY(-1px);
-}
-
-.lobby-primary {
-    background: linear-gradient(120deg, var(--accent) 0%, var(--accent-strong) 100%);
-    color: #fff;
-    border: none;
-    border-radius: 0.9rem;
-    padding: 0.9rem 1.1rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    box-shadow: 0 12px 32px rgba(139, 92, 246, 0.32);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.lobby-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 18px 40px rgba(139, 92, 246, 0.42);
-}
-
-.lobby-secondary:disabled,
-.lobby-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.lobby-status {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-    margin-top: 0.5rem;
-}
-
-.lobby-error {
-    background: rgba(248, 113, 113, 0.12);
-    border: 1px solid rgba(248, 113, 113, 0.35);
-    color: #fecaca;
-    padding: 0.75rem 1rem;
-    border-radius: 0.85rem;
-    font-size: 0.9rem;
-}
-
-.lobby-player-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.75rem;
-    margin-top: 1rem;
-}
-
-.lobby-player {
-    background: rgba(15, 23, 42, 0.65);
-    border-radius: 0.85rem;
-    padding: 0.85rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: var(--text-primary);
-    border: 1px solid rgba(139, 92, 246, 0.18);
-}
-
-.lobby-player.placeholder {
-    color: var(--text-muted);
-    border-style: dashed;
-}
-
-.lobby-player-tag {
-    background: rgba(139, 92, 246, 0.24);
-    color: var(--accent-strong);
-    padding: 0.2rem 0.5rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-@media (max-width: 640px) {
-    .lobby-card {
-        padding: 2rem 1.5rem;
-    }
-
-    .lobby-input-row {
-        grid-template-columns: 1fr;
-    }
-
-    .lobby-button-row {
-        grid-template-columns: 1fr;
-    }
-}
-
-@keyframes gradientDrift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
 body[data-theme="aurora"] {
     --bg-gradient: radial-gradient(120% 120% at 50% 5%, rgba(112, 75, 217, 0.6), rgba(7, 12, 36, 0.96));
     --bg-overlay: linear-gradient(200deg, rgba(16, 22, 60, 0.85) 0%, rgba(4, 7, 24, 0.95) 55%, rgba(2, 4, 16, 0.98) 100%);
@@ -1222,23 +1009,6 @@ body.endless-mode #gameCanvas {
         const gradientOverlay = document.getElementById('gradientOverlay');
         const lightingOverlay = document.getElementById('lightingOverlay');
 
-        const searchParams = new URLSearchParams(window.location.search);
-        const serverOverride = searchParams.get('server') || window.STRIKR_SERVER_URL;
-        const serverProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const serverHost = window.location.hostname || 'localhost';
-        const defaultServerUrl = `${serverProtocol}//${serverHost}:${DEFAULT_SERVER_PORT}`;
-        const multiplayerServerUrl = serverOverride || defaultServerUrl;
-
-        const lobbyController = initializeLobby({
-            serverUrl: multiplayerServerUrl,
-            onRoomJoined: () => {
-                if (!gameRunning) {
-                    startGame();
-                }
-            }
-        });
-
-        let gameRunning = false;
         const fallbackStarColor = { r: 230, g: 240, b: 255 };
         let starPalette = [fallbackStarColor, fallbackStarColor, fallbackStarColor];
         let stars = [];
@@ -1719,11 +1489,6 @@ body.endless-mode #gameCanvas {
         });
         canvas.addEventListener('mousedown', (e) => {
             if (isGameEffectivelyPaused() || e.button !== 0) return;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = rect.width ? canvas.width / rect.width : 1;
-            const scaleY = rect.height ? canvas.height / rect.height : 1;
-            mouseX = (e.clientX - rect.left) * scaleX;
-            mouseY = (e.clientY - rect.top) * scaleY;
             mouseShootActive = true;
             if (mouseAimActive && !aimbotActive && player1 && player1.health > 0) { player1.shoot(true); }
         });
@@ -2527,12 +2292,6 @@ body.endless-mode #gameCanvas {
                     updateUI();
                 }
 
-                for (let i = this.dashTrail.length - 1; i >= 0; i--) {
-                    const trail = this.dashTrail[i];
-                    trail.life -= deltaTime;
-                    if (trail.life <= 0) { this.dashTrail.splice(i, 1); }
-                }
-
                 this.updateAimDirection(deltaTime); this.move(deltaTime); this.shoot();
                 if (!this.beamReady && !this.isFiringBeam) { this.beamCharge += deltaTime; if (this.beamCharge >= this.beamChargeMax) { this.beamCharge = this.beamChargeMax; this.beamReady = true;} }
                 if (!this.smashReady && !this.isSmashing) { this.smashCharge += deltaTime; if (this.smashCharge >= this.smashChargeMax) { this.smashCharge = this.smashChargeMax; this.smashReady = true;}}
@@ -2908,16 +2667,10 @@ body.endless-mode #gameCanvas {
             newWidth = Math.max(320, Math.min(newWidth, 2560));
             newHeight = Math.max(180, Math.min(newHeight, 1440));
 
-            const displayWidth = Math.round(newWidth);
-            const displayHeight = Math.round(newHeight);
-
-            canvas.style.width = `${displayWidth}px`;
-            canvas.style.height = `${displayHeight}px`;
-
-            canvas.width = displayWidth;
-            canvas.height = displayHeight;
-            CANVAS_WIDTH = displayWidth;
-            CANVAS_HEIGHT = displayHeight;
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            CANVAS_WIDTH = newWidth;
+            CANVAS_HEIGHT = newHeight;
 
             if (player1) {
                 player1.x = Math.max(0, Math.min(player1.x, CANVAS_WIDTH - player1.width));
