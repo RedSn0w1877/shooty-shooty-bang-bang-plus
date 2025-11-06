@@ -43,41 +43,9 @@ body {
     position: relative;
     transition: background 0.6s ease, color 0.6s ease;
 }
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    background-image:
-        radial-gradient(var(--star-primary) 1px, transparent 45px),
-        radial-gradient(var(--star-secondary) 1.2px, transparent 60px),
-        radial-gradient(var(--star-tertiary) 1.5px, transparent 80px),
-        radial-gradient(rgba(255, 255, 255, 0.25) 0.5px, transparent 35px),
-        radial-gradient(rgba(148, 163, 255, 0.2) 1px, transparent 70px);
-    background-size: 160px 160px, 220px 220px, 340px 340px, 120px 120px, 420px 420px;
-    background-position: 0 0, 40px 60px, 120px -40px, -30px 90px, 80px 210px;
-    animation: starDrift 65s linear infinite;
-    opacity: 0.85;
-}
+body::before,
 body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background: var(--bg-overlay);
-    pointer-events: none;
-}
-@keyframes starDrift {
-    from { background-position: 0 0, 40px 60px, 120px -40px, -30px 90px, 80px 210px; }
-    to { background-position: -360px -360px, -220px -180px, 240px -260px, 160px -140px, -120px -240px; }
-}
-body.hell-mode::before {
-    animation-duration: 35s;
-    opacity: 0.95;
-}
-body.endless-mode::before {
-    animation-duration: 85s;
-    opacity: 0.7;
+    display: none;
 }
 body[data-theme="aurora"] {
     --bg-gradient: radial-gradient(120% 120% at 50% 5%, rgba(112, 75, 217, 0.6), rgba(7, 12, 36, 0.96));
@@ -175,12 +143,12 @@ body[data-theme="inferno"] {
 }
 .game-container {
     width: min(1200px, calc(100vw - 2rem));
-    background: linear-gradient(160deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0.03) 100%), var(--panel-bg);
+    background: rgba(7, 12, 30, 0.86);
     border-radius: 28px;
-    border: 1px solid var(--panel-border);
+    border: 1px solid rgba(148, 163, 255, 0.18);
     padding: 2.25rem clamp(1.25rem, 2vw, 2.5rem);
-    box-shadow: 0 35px 90px rgba(6, 8, 24, 0.55), 0 0 80px var(--glow);
-    backdrop-filter: blur(20px);
+    box-shadow: none;
+    backdrop-filter: none;
     display: flex;
     flex-direction: column;
     gap: 1.4rem;
@@ -419,18 +387,16 @@ body[data-theme="inferno"] {
     width: 100%;
     max-width: 100%;
     border-radius: 24px;
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.06), rgba(4, 10, 30, 0.95));
-    box-shadow: 0 30px 80px rgba(8, 12, 40, 0.65), 0 0 50px var(--glow);
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(3, 6, 16, 0.95);
+    box-shadow: none;
+    transition: border-color 0.3s ease;
 }
 body.hell-mode #gameCanvas {
-    border-color: rgba(248, 113, 113, 0.65);
-    box-shadow: 0 30px 80px rgba(45, 6, 24, 0.75), 0 0 70px rgba(249, 115, 22, 0.55);
+    border-color: rgba(248, 113, 113, 0.45);
 }
 body.endless-mode #gameCanvas {
-    border-color: rgba(96, 165, 250, 0.65);
-    box-shadow: 0 30px 80px rgba(8, 26, 64, 0.7), 0 0 70px rgba(96, 165, 250, 0.5);
+    border-color: rgba(96, 165, 250, 0.45);
 }
 .extra-buttons-container {
     display: flex;
@@ -947,8 +913,8 @@ body.endless-mode #gameCanvas {
 
             <div class="controls-info">
                 <p class="controls-heading">Controls</p>
-                <p><span class="controls-accent">Player:</span> WASD to Move, Space/Click to Shoot, B for Beam, X for Smash, M for Mouse Aim</p>
-                <p class="controls-detail">Beam: 21s, Smash: 37.5s. Targets hurt on touch!</p>
+                <p><span class="controls-accent">Player:</span> WASD to Move, Space/Click to Shoot, Q to Dash, B for Beam, X for Smash, M for Mouse Aim</p>
+                <p class="controls-detail">Beam: 21s, Smash: 37.5s, Dash: 3s. Targets hurt on touch!</p>
             </div>
 
             <div id="leaderboardContainer" class="hidden">
@@ -1088,8 +1054,6 @@ body.endless-mode #gameCanvas {
         const HELL_MODE_SPAWN_INTERVAL = 1200;
         const HELL_MODE_EXTRA_SPAWN_COUNT = 2;
         const REVIVE_INVULNERABILITY_DURATION = 3000;
-        const STARFIELD_MIN_COUNT = 80;
-        const STARFIELD_MAX_COUNT = 220;
 
         let gameRunning = false;
         let currentStage = 1;
@@ -1112,48 +1076,6 @@ body.endless-mode #gameCanvas {
         let nextGoldenHealthPackSpawnTime = 0;
         let nextHellSpawnTime = 0;
         let globalPlayerName = "Player";
-        let starfieldDots = [];
-
-        function regenerateStarfield() {
-            const area = Math.max(1, CANVAS_WIDTH * CANVAS_HEIGHT);
-            const targetCount = Math.max(
-                STARFIELD_MIN_COUNT,
-                Math.min(STARFIELD_MAX_COUNT, Math.floor(area / 2400))
-            );
-            starfieldDots = new Array(targetCount).fill(null).map(() => {
-                const pulses = Math.random() < 0.3;
-                const size = 0.7 + Math.random() * 1.1;
-                return {
-                    x: Math.random() * (CANVAS_WIDTH - size) + size / 2,
-                    y: Math.random() * (CANVAS_HEIGHT - size) + size / 2,
-                    size,
-                    baseAlpha: 0.35 + Math.random() * 0.45,
-                    pulseSpeed: pulses ? (0.45 + Math.random() * 0.4) : 0,
-                    pulseAmplitude: pulses ? (0.12 + Math.random() * 0.18) : 0,
-                    phase: Math.random() * Math.PI * 2
-                };
-            });
-        }
-
-        function drawStarfield(deltaTime) {
-            ctx.fillStyle = '#05080f';
-            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-            if (!starfieldDots.length) { return; }
-            const seconds = deltaTime / 1000;
-            for (let i = 0; i < starfieldDots.length; i++) {
-                const star = starfieldDots[i];
-                if (star.pulseSpeed > 0) {
-                    star.phase += seconds * star.pulseSpeed;
-                }
-                const intensity = star.baseAlpha + (star.pulseAmplitude * Math.sin(star.phase));
-                const alpha = Math.min(1, Math.max(0.2, intensity));
-                const size = star.size;
-                ctx.fillStyle = `rgba(248, 250, 252, ${alpha})`;
-                ctx.fillRect(star.x - size / 2, star.y - size / 2, size, size);
-            }
-            ctx.globalAlpha = 1;
-        }
-
         // NEW: Admin Password State
         let pendingAdminAction = null;
         const ADMIN_PASSWORD = "admin123"; // <-- YOU CAN CHANGE THE PASSWORD HERE
@@ -1228,9 +1150,14 @@ body.endless-mode #gameCanvas {
                 p.x += p.vx * (deltaTime / 16.67); p.y += p.vy * (deltaTime / 16.67);
                 p.vx *= 0.98; p.vy *= 0.98; p.life -= deltaTime; p.rotation += p.rotationSpeed * (deltaTime / 16.67);
                 if (p.life <= 0) { particles.splice(i, 1); } else {
-                    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation);
-                    ctx.fillStyle = p.color; const opacity = Math.max(0, p.life / p.maxLife);
-                    ctx.globalAlpha = opacity * 0.8; ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    const opacity = Math.max(0, p.life / p.maxLife);
+                    ctx.globalAlpha = opacity * 0.6;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, p.size * 0.55, p.size * 0.55, 0, 0, Math.PI * 2);
+                    ctx.fill();
                     ctx.restore();
                 }
             }
@@ -1296,12 +1223,17 @@ body.endless-mode #gameCanvas {
             keysPressed[e.code] = true;
             if (['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) { e.preventDefault(); }
             if (e.code === 'KeyM') { toggleMouseAim(); }
+            if (e.code === 'KeyQ' && player1) { e.preventDefault(); player1.tryDash(); }
             if (e.code === 'KeyX' && player1 && player1.smashReady && !player1.isSmashing) { player1.fireSmash(); }
         });
         window.addEventListener('keyup', (e) => { keysPressed[e.code] = false; });
         canvas.addEventListener('mousemove', (e) => {
             if (isGameEffectivelyPaused()) return;
-            const rect = canvas.getBoundingClientRect(); mouseX = e.clientX - rect.left; mouseY = e.clientY - rect.top;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = rect.width ? canvas.width / rect.width : 1;
+            const scaleY = rect.height ? canvas.height / rect.height : 1;
+            mouseX = (e.clientX - rect.left) * scaleX;
+            mouseY = (e.clientY - rect.top) * scaleY;
         });
         canvas.addEventListener('mousedown', (e) => {
             if (isGameEffectivelyPaused() || e.button !== 0) return;
@@ -1813,6 +1745,10 @@ body.endless-mode #gameCanvas {
                 this.beamTargetAngle = 0; this.keyboardAimVector = { x: 1, y: 0 }; this.hasKeyboardAimInput = false;
                 this.aimbotTarget = null; this.bulletCount = 1; this.engineParticles = [];
                 this.engineParticleTimer = 0; this.engineParticleInterval = 50; this.currentSpeed = 0;
+                this.dashTrail = [];
+                this.isDashing = false; this.dashStartTime = 0; this.lastDashTime = -Infinity;
+                this.dashDuration = 220; this.dashCooldown = 3000; this.dashSpeed = this.type.baseSpeed * 8;
+                this.dashDirection = { x: 1, y: 0 };
                 this.shieldOpacity = 0; this.lastDamageTime = 0;
                 this.isInvulnerable = false; this.invulnerableUntil = 0;
                 this.isDivineProtectionActive = false;
@@ -1822,6 +1758,17 @@ body.endless-mode #gameCanvas {
             }
 
             draw() {
+                this.dashTrail.forEach(trail => {
+                    const intensity = Math.max(0, trail.life / trail.maxLife);
+                    if (intensity <= 0) { return; }
+                    ctx.save();
+                    ctx.globalAlpha = intensity * 0.35;
+                    ctx.fillStyle = 'rgba(148, 163, 255, 0.6)';
+                    ctx.beginPath();
+                    ctx.ellipse(trail.x, trail.y, this.width * 0.6 * intensity, this.height * 0.45 * intensity, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
                 ctx.save();
                 ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
                 ctx.rotate(this.aimAngle);
@@ -1945,6 +1892,34 @@ body.endless-mode #gameCanvas {
             }
 
             move(deltaTime) {
+                if(this.isDashing){
+                    const elapsed = Date.now() - this.dashStartTime;
+                    const progress = Math.min(1, elapsed / this.dashDuration);
+                    const dashStep = this.dashSpeed * (1 - 0.4 * progress) * (deltaTime/(1000/60));
+                    this.x += this.dashDirection.x * dashStep;
+                    this.y += this.dashDirection.y * dashStep;
+                    this.lastMoveDx = this.dashDirection.x;
+                    this.lastMoveDy = this.dashDirection.y;
+                    this.x=Math.max(0,Math.min(this.x,CANVAS_WIDTH-this.width)); this.y=Math.max(0,Math.min(this.y,CANVAS_HEIGHT-this.height));
+                    this.dashTrail.push({ x: this.x + this.width/2, y: this.y + this.height/2, life: 220, maxLife: 220 });
+                    if (this.dashTrail.length > 18) { this.dashTrail.shift(); }
+                    this.engineParticleTimer+=deltaTime;
+                    if(this.engineParticleTimer>this.engineParticleInterval/2){
+                        this.engineParticleTimer=0;
+                        const particleCount=3;
+                        for(let i=0;i<particleCount;i++){
+                            const angleOffset=(Math.random()-0.5)*0.3;
+                            const particleStartX = (this.x + this.width/2) - Math.cos(this.aimAngle) * (this.width * 0.5);
+                            const particleStartY = (this.y + this.height/2) - Math.sin(this.aimAngle) * (this.height * 0.5);
+                            const particleAngle=this.aimAngle+Math.PI+angleOffset;
+                            const speed=2.2+Math.random()*1.8;
+                            this.engineParticles.push({ x:particleStartX, y:particleStartY, vx:Math.cos(particleAngle)*speed, vy:Math.sin(particleAngle)*speed, size:Math.random()*2+1.5, life:Math.random()*200+150, maxLife:260, color:`hsla(${205+Math.random()*15},100%,70%,${0.45+Math.random()*0.35})`, opacity:1 });
+                        }
+                    }
+                    for(let i=this.engineParticles.length-1;i>=0;i--){ const p=this.engineParticles[i]; p.x+=p.vx; p.y+=p.vy; p.life-=deltaTime; p.opacity=p.life/p.maxLife; if(p.life<=0)this.engineParticles.splice(i,1); }
+                    if (elapsed >= this.dashDuration) { this.isDashing = false; }
+                    return;
+                }
                 let moveDx=0; let moveDy=0;
                 if(keysPressed[this.controls.left]){moveDx-=1;} if(keysPressed[this.controls.right]){moveDx+=1;}
                 if(keysPressed[this.controls.up]){moveDy-=1;} if(keysPressed[this.controls.down]){moveDy+=1;}
@@ -1996,6 +1971,21 @@ body.endless-mode #gameCanvas {
                         this.projectiles.push(new Projectile( startX, startY, cosA*this.type.projectileSpeed, sinA*this.type.projectileSpeed, this.type.projectileColor ));
                     }
                 }
+            }
+            tryDash() {
+                if (this.health <= 0) { return; }
+                const now = Date.now();
+                if (this.isDashing || (now - this.lastDashTime) < this.dashCooldown) { return; }
+                this.isDashing = true;
+                this.dashStartTime = now;
+                this.lastDashTime = now;
+                const dirX = Math.cos(this.aimAngle);
+                const dirY = Math.sin(this.aimAngle);
+                const magnitude = Math.hypot(dirX, dirY) || 1;
+                this.dashDirection.x = dirX / magnitude;
+                this.dashDirection.y = dirY / magnitude;
+                createParticle(this.x + this.width/2, this.y + this.height/2, 12, 'rgba(148,163,255,0.45)', [6, 12], [2.5, 5.5], [200, 340], Math.PI * 2);
+                createParticle(this.x + this.width/2, this.y + this.height/2, 8, 'rgba(94, 234, 212, 0.4)', [4, 9], [2, 4], [160, 260], Math.PI * 2);
             }
             fireBeam() {
                 if (this.beamReady && !this.isFiringBeam) {
@@ -2078,6 +2068,7 @@ body.endless-mode #gameCanvas {
                 this.lastMoveDx = 1; this.lastMoveDy = 0; this.aimAngle = 0; this.beamTargetAngle = 0; this.aimbotTarget = null;
                 this.keyboardAimVector = { x: 1, y: 0 }; this.hasKeyboardAimInput = false;
                 this.bulletCount = 1; this.engineParticles = []; this.currentSpeed = 0; this.shieldOpacity = 0;
+                this.dashTrail = []; this.isDashing = false; this.dashStartTime = 0; this.lastDashTime = -Infinity; this.dashDirection = { x: 1, y: 0 };
                 this.isInvulnerable = false; this.invulnerableUntil = 0;
                 this.rapidFireActiveUntil = 0; this.shootDelayBase = this.type.baseShootDelay;
                 this.shieldActiveUntil = 0;
@@ -2088,6 +2079,7 @@ body.endless-mode #gameCanvas {
                 }
             }
             takeDamage(amount) {
+                if (this.isDashing) return;
                 if (this.isInvulnerable || Date.now() < this.shieldActiveUntil) return;
 
                 if (this.isDivineProtectionActive) {
@@ -2425,7 +2417,6 @@ body.endless-mode #gameCanvas {
             canvas.height = newHeight;
             CANVAS_WIDTH = newWidth;
             CANVAS_HEIGHT = newHeight;
-            regenerateStarfield();
 
             if (player1) {
                 player1.x = Math.max(0, Math.min(player1.x, CANVAS_WIDTH - player1.width));
