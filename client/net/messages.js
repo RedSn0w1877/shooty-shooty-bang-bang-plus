@@ -1,8 +1,0 @@
-import {
-  CLIENT_MESSAGES,
-  SERVER_MESSAGES,
-  MAX_PLAYERS,
-  ROOM_STATUS
-} from '../../shared/constants.js';
-
-export { CLIENT_MESSAGES, SERVER_MESSAGES, MAX_PLAYERS, ROOM_STATUS };
