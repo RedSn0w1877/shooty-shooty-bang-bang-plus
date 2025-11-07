@@ -14,15 +14,3 @@ Have fun!
 Game has been Renamed to Strikr for educational purposes.
 
 https://redsn0w1877.github.io/Strikr/
-
-## Multiplayer development setup
-
-The repository now ships with a lightweight Node.js WebSocket server that coordinates 4-player rooms.
-
-```bash
-cd server
-npm install
-npm run dev
-```
-
-By default the server listens on `ws://localhost:3001`. When serving `index.html` locally, the lobby overlay will prompt you to create or join a room using a 4–8 character code once the initial license and name flow completes. You can override the WebSocket endpoint by launching the page with `?server=ws://host:port` in the URL.
