@@ -49,219 +49,6 @@ body::before,
 body::after {
     display: none;
 }
-
-.gradient-overlay,
-.cosmic-background,
-.lighting-overlay {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    width: 100vw;
-    height: 100vh;
-    z-index: -5;
-}
-
-.gradient-overlay {
-    z-index: -5;
-    background: var(--bg-overlay);
-    background-size: 220% 220%;
-    animation: gradientDrift 80s ease-in-out infinite;
-    opacity: 0.9;
-}
-
-.cosmic-background {
-    z-index: -4;
-    opacity: 0.8;
-}
-
-.lighting-overlay {
-    z-index: -3;
-    mix-blend-mode: screen;
-    transition: opacity 0.45s ease, filter 0.45s ease;
-    opacity: 0.55;
-}
-
-.lobby-overlay {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(6, 11, 30, 0.88);
-    backdrop-filter: blur(6px);
-    z-index: 20;
-    transition: opacity 0.35s ease;
-}
-
-.lobby-card {
-    width: min(520px, 90vw);
-    padding: 2.5rem 2.75rem;
-    border-radius: 1.5rem;
-    background: rgba(12, 18, 44, 0.92);
-    box-shadow: 0 22px 60px rgba(8, 12, 28, 0.65);
-    border: 1px solid rgba(148, 163, 255, 0.18);
-}
-
-.lobby-header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    margin-bottom: 1.75rem;
-}
-
-.lobby-title {
-    font-size: clamp(1.75rem, 2.4vw, 2.25rem);
-    font-weight: 700;
-    letter-spacing: 0.04em;
-}
-
-.lobby-subtitle {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-}
-
-.lobby-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.lobby-input-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.75rem;
-    align-items: center;
-}
-
-.lobby-input {
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(148, 163, 255, 0.24);
-    border-radius: 0.9rem;
-    color: var(--text-primary);
-    padding: 0.85rem 1.1rem;
-    font-size: 1rem;
-}
-
-.lobby-input:focus {
-    outline: none;
-    border-color: var(--accent-strong);
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18);
-}
-
-.lobby-button-row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-}
-
-.lobby-secondary {
-    border: 1px solid rgba(148, 163, 255, 0.25);
-    background: rgba(17, 24, 39, 0.72);
-    color: var(--text-primary);
-    border-radius: 0.9rem;
-    padding: 0.85rem 1.1rem;
-    font-weight: 600;
-    transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.lobby-secondary:hover {
-    background: rgba(30, 41, 59, 0.85);
-    transform: translateY(-1px);
-}
-
-.lobby-primary {
-    background: linear-gradient(120deg, var(--accent) 0%, var(--accent-strong) 100%);
-    color: #fff;
-    border: none;
-    border-radius: 0.9rem;
-    padding: 0.9rem 1.1rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    box-shadow: 0 12px 32px rgba(139, 92, 246, 0.32);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.lobby-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 18px 40px rgba(139, 92, 246, 0.42);
-}
-
-.lobby-secondary:disabled,
-.lobby-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.lobby-status {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-    margin-top: 0.5rem;
-}
-
-.lobby-error {
-    background: rgba(248, 113, 113, 0.12);
-    border: 1px solid rgba(248, 113, 113, 0.35);
-    color: #fecaca;
-    padding: 0.75rem 1rem;
-    border-radius: 0.85rem;
-    font-size: 0.9rem;
-}
-
-.lobby-player-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.75rem;
-    margin-top: 1rem;
-}
-
-.lobby-player {
-    background: rgba(15, 23, 42, 0.65);
-    border-radius: 0.85rem;
-    padding: 0.85rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: var(--text-primary);
-    border: 1px solid rgba(139, 92, 246, 0.18);
-}
-
-.lobby-player.placeholder {
-    color: var(--text-muted);
-    border-style: dashed;
-}
-
-.lobby-player-tag {
-    background: rgba(139, 92, 246, 0.24);
-    color: var(--accent-strong);
-    padding: 0.2rem 0.5rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-@media (max-width: 640px) {
-    .lobby-card {
-        padding: 2rem 1.5rem;
-    }
-
-    .lobby-input-row {
-        grid-template-columns: 1fr;
-    }
-
-    .lobby-button-row {
-        grid-template-columns: 1fr;
-    }
-}
-
-@keyframes gradientDrift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
 body[data-theme="aurora"] {
     --bg-gradient: radial-gradient(120% 120% at 50% 5%, rgba(112, 75, 217, 0.6), rgba(7, 12, 36, 0.96));
     --bg-overlay: linear-gradient(200deg, rgba(16, 22, 60, 0.85) 0%, rgba(4, 7, 24, 0.95) 55%, rgba(2, 4, 16, 0.98) 100%);
@@ -675,43 +462,6 @@ body.hell-mode #gameCanvas {
 body.endless-mode #gameCanvas {
     border-color: rgba(96, 165, 250, 0.45);
 }
-.pause-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(6, 10, 28, 0.78);
-    backdrop-filter: blur(6px);
-    color: var(--text-primary);
-    text-align: center;
-    gap: 0.75rem;
-    font-family: 'Outfit', 'Space Grotesk', sans-serif;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-.pause-overlay.visible {
-    opacity: 1;
-    pointer-events: auto;
-}
-.pause-overlay__title {
-    font-size: clamp(1.1rem, 2.6vw, 1.6rem);
-    font-weight: 700;
-}
-.pause-overlay__subtitle {
-    font-size: clamp(0.85rem, 2vw, 1rem);
-    color: var(--text-muted);
-}
-.pause-overlay__countdown {
-    font-size: clamp(2rem, 6vw, 3rem);
-    font-weight: 700;
-    color: var(--accent-strong);
-    text-shadow: 0 0 18px var(--glow);
-}
 .extra-buttons-container {
     display: flex;
     flex-wrap: wrap;
@@ -1047,7 +797,7 @@ body.endless-mode #gameCanvas {
     <div id="gradientOverlay" class="gradient-overlay"></div>
     <canvas id="backgroundCanvas" class="cosmic-background"></canvas>
     <div id="lightingOverlay" class="lighting-overlay"></div>
-    <div id="versionDisplay" class="version-box">V6.7</div>
+    <div id="versionDisplay" class="version-box">V6.5</div>
     <div id="tempPopup" class="hidden"></div>
  
     <div id="licensePopup" class="hidden">
@@ -1345,27 +1095,6 @@ body.endless-mode #gameCanvas {
         const gradientOverlay = document.getElementById('gradientOverlay');
         const lightingOverlay = document.getElementById('lightingOverlay');
 
-        const searchParams = new URLSearchParams(window.location.search);
-        const serverOverride = searchParams.get('server') || window.STRIKR_SERVER_URL;
-        const serverProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const serverHost = window.location.hostname || 'localhost';
-        const defaultServerUrl = `${serverProtocol}//${serverHost}:${DEFAULT_SERVER_PORT}`;
-        const multiplayerServerUrl = serverOverride || defaultServerUrl;
-
-        const lobbyController = initializeLobby({
-            serverUrl: multiplayerServerUrl,
-            onRoomJoined: () => {
-                if (!gameRunning) {
-                    startGame();
-                }
-            }
-        });
-
-        let gameRunning = false;
-        let gamePaused = false;
-        let resumeCountdownActive = false;
-        let resumeCountdownRemaining = 0;
-        let resumeCountdownTimer = null;
         const fallbackStarColor = { r: 230, g: 240, b: 255 };
         let starPalette = [fallbackStarColor, fallbackStarColor, fallbackStarColor];
         let stars = [];
@@ -1434,17 +1163,6 @@ body.endless-mode #gameCanvas {
             return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
 
-        function normalizeAngle(angle) {
-            let adjusted = angle;
-            while (adjusted > Math.PI) {
-                adjusted -= Math.PI * 2;
-            }
-            while (adjusted < -Math.PI) {
-                adjusted += Math.PI * 2;
-            }
-            return adjusted;
-        }
-
         function refreshStarPalette() {
             if (!backgroundCtx) { return; }
             const styles = getComputedStyle(document.body);
@@ -1470,29 +1188,20 @@ body.endless-mode #gameCanvas {
             const width = backgroundCanvas.width;
             const height = backgroundCanvas.height;
             const layerConfigs = [
-                { count: Math.max(60, Math.floor(width / 18)), speed: 0.014, size: [0.75, 1.6], turn: 0.00035 },
-                { count: Math.max(45, Math.floor(width / 22)), speed: 0.022, size: [1.0, 2.2], turn: 0.00045 },
-                { count: Math.max(30, Math.floor(width / 28)), speed: 0.035, size: [1.4, 2.9], turn: 0.0006 }
+                { count: Math.max(60, Math.floor(width / 18)), speed: 0.015, size: [0.75, 1.6], drift: 0.018 },
+                { count: Math.max(45, Math.floor(width / 22)), speed: 0.025, size: [1.0, 2.2], drift: 0.03 },
+                { count: Math.max(30, Math.floor(width / 28)), speed: 0.04, size: [1.4, 2.9], drift: 0.045 }
             ];
             stars = [];
             layerConfigs.forEach((config, layerIndex) => {
                 for (let i = 0; i < config.count; i++) {
                     const size = config.size[0] + Math.random() * (config.size[1] - config.size[0]);
-                    const baseSpeed = config.speed * (0.6 + Math.random() * 0.8);
-                    const baseAngle = Math.random() * Math.PI * 2;
-                    const targetAngle = baseAngle + (Math.random() - 0.5) * Math.PI * 0.5;
-                    const directionChangeInterval = 3500 + Math.random() * 6000;
                     stars.push({
                         x: Math.random() * width,
                         y: Math.random() * height,
                         size,
-                        speed: baseSpeed,
-                        directionAngle: baseAngle,
-                        directionTargetAngle: targetAngle,
-                        directionChangeSpeed: config.turn * (0.8 + Math.random() * 0.6),
-                        directionChangeTimer: 0,
-                        directionChangeInterval,
-                        driftNoise: (Math.random() - 0.5) * 0.00012,
+                        speed: config.speed * (0.6 + Math.random() * 0.8),
+                        drift: config.drift * (Math.random() * 0.6 + 0.4) * (Math.random() < 0.5 ? -1 : 1),
                         twinkleSpeed: 0.001 + Math.random() * 0.0012,
                         twinklePhase: Math.random() * Math.PI * 2,
                         baseAlpha: 0.4 + Math.random() * 0.45,
@@ -1516,23 +1225,14 @@ body.endless-mode #gameCanvas {
             backgroundCtx.globalCompositeOperation = 'lighter';
 
             stars.forEach(star => {
-                star.directionChangeTimer += delta;
-                if (star.directionChangeTimer >= star.directionChangeInterval) {
-                    star.directionChangeTimer = 0;
-                    star.directionChangeInterval = 3500 + Math.random() * 6000;
-                    star.directionTargetAngle = star.directionAngle + (Math.random() - 0.5) * Math.PI;
+                star.y += star.speed * delta;
+                star.x += star.drift * delta;
+                if (star.y > height + star.size) {
+                    star.y = -star.size;
+                    star.x = Math.random() * width;
                 }
-                const angleDelta = normalizeAngle(star.directionTargetAngle - star.directionAngle);
-                star.directionAngle += angleDelta * star.directionChangeSpeed * delta;
-                star.directionAngle += star.driftNoise * delta;
-                const velocityX = Math.cos(star.directionAngle) * star.speed;
-                const velocityY = Math.sin(star.directionAngle) * star.speed;
-                star.x += velocityX * delta;
-                star.y += velocityY * delta;
                 if (star.x > width + star.size) { star.x = -star.size; }
                 if (star.x < -star.size) { star.x = width + star.size; }
-                if (star.y > height + star.size) { star.y = -star.size; }
-                if (star.y < -star.size) { star.y = height + star.size; }
                 star.twinklePhase += star.twinkleSpeed * delta;
                 const twinkle = 0.6 + 0.4 * Math.sin(star.twinklePhase);
                 const paletteColor = starPalette[star.paletteIndex % starPalette.length] || fallbackStarColor;
@@ -1599,122 +1299,6 @@ body.endless-mode #gameCanvas {
             lightingOverlay.style.background = `radial-gradient(circle at ${xPercent}% ${yPercent}%, ${lightColor} 0%, rgba(15, 23, 42, 0.08) 42%, ${lightFalloffColor} 78%)`;
         }
 
-        function rectsIntersect(ax, ay, aw, ah, bx, by, bw, bh) {
-            return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
-        }
-
-        function rectsIntersectWithMargin(ax, ay, aw, ah, bx, by, bw, bh, margin = 0) {
-            return ax < bx + bw + margin && ax + aw > bx - margin && ay < by + bh + margin && ay + ah > by - margin;
-        }
-
-        function moveEntityWithObstacles(entity, dx, dy) {
-            if (!entity) { return; }
-            let proposedX = entity.x;
-            let proposedY = entity.y;
-            if (dx !== 0) {
-                proposedX += dx;
-                for (const obstacle of obstacles) {
-                    if (rectsIntersect(proposedX, entity.y, entity.width, entity.height, obstacle.x, obstacle.y, obstacle.width, obstacle.height)) {
-                        proposedX = dx > 0 ? obstacle.x - entity.width : obstacle.x + obstacle.width;
-                    }
-                }
-            }
-            if (dy !== 0) {
-                proposedY += dy;
-                for (const obstacle of obstacles) {
-                    if (rectsIntersect(proposedX, proposedY, entity.width, entity.height, obstacle.x, obstacle.y, obstacle.width, obstacle.height)) {
-                        proposedY = dy > 0 ? obstacle.y - entity.height : obstacle.y + obstacle.height;
-                    }
-                }
-            }
-            entity.x = Math.max(0, Math.min(proposedX, CANVAS_WIDTH - entity.width));
-            entity.y = Math.max(0, Math.min(proposedY, CANVAS_HEIGHT - entity.height));
-        }
-
-        function ensureEntityOutsideObstacles(entity) {
-            if (!entity) { return; }
-            for (const obstacle of obstacles) {
-                if (rectsIntersect(entity.x, entity.y, entity.width, entity.height, obstacle.x, obstacle.y, obstacle.width, obstacle.height)) {
-                    const centerX = entity.x + entity.width / 2;
-                    const centerY = entity.y + entity.height / 2;
-                    const obstacleCenterX = obstacle.x + obstacle.width / 2;
-                    const obstacleCenterY = obstacle.y + obstacle.height / 2;
-                    const diffX = centerX - obstacleCenterX;
-                    const diffY = centerY - obstacleCenterY;
-                    if (Math.abs(diffX) > Math.abs(diffY)) {
-                        entity.x = diffX > 0 ? obstacle.x + obstacle.width : obstacle.x - entity.width;
-                    } else {
-                        entity.y = diffY > 0 ? obstacle.y + obstacle.height : obstacle.y - entity.height;
-                    }
-                }
-            }
-            entity.x = Math.max(0, Math.min(entity.x, CANVAS_WIDTH - entity.width));
-            entity.y = Math.max(0, Math.min(entity.y, CANVAS_HEIGHT - entity.height));
-        }
-
-        function generateObstacles() {
-            const generated = [];
-            const area = CANVAS_WIDTH * CANVAS_HEIGHT;
-            const desiredCount = Math.max(3, Math.min(7, Math.round(area / 80000)));
-            const placementMargin = Math.max(32, CANVAS_WIDTH * 0.025);
-            const spawnSafeZone = {
-                x: 0,
-                y: CANVAS_HEIGHT / 2 - Math.max(140, CANVAS_HEIGHT * 0.2),
-                width: Math.max(220, CANVAS_WIDTH * 0.2),
-                height: Math.max(240, CANVAS_HEIGHT * 0.3)
-            };
-            let attempts = 0;
-            while (generated.length < desiredCount && attempts < desiredCount * 20) {
-                attempts++;
-                const horizontal = Math.random() > 0.5;
-                const width = horizontal
-                    ? Math.max(90, CANVAS_WIDTH * (0.12 + Math.random() * 0.18))
-                    : Math.max(70, CANVAS_WIDTH * (0.06 + Math.random() * 0.1));
-                const height = horizontal
-                    ? Math.max(70, CANVAS_HEIGHT * (0.06 + Math.random() * 0.12))
-                    : Math.max(120, CANVAS_HEIGHT * (0.12 + Math.random() * 0.18));
-                const x = Math.random() * (CANVAS_WIDTH - width - placementMargin * 2) + placementMargin;
-                const y = Math.random() * (CANVAS_HEIGHT - height - placementMargin * 2) + placementMargin;
-                const candidate = { x, y, width, height };
-                if (rectsIntersectWithMargin(candidate.x, candidate.y, candidate.width, candidate.height, spawnSafeZone.x, spawnSafeZone.y, spawnSafeZone.width, spawnSafeZone.height, placementMargin)) {
-                    continue;
-                }
-                if (generated.some(obs => rectsIntersectWithMargin(candidate.x, candidate.y, candidate.width, candidate.height, obs.x, obs.y, obs.width, obs.height, Math.max(60, CANVAS_WIDTH * 0.04)))) {
-                    continue;
-                }
-                generated.push(candidate);
-            }
-            return generated;
-        }
-
-        function drawObstacles() {
-            if (!ctx || obstacles.length === 0) { return; }
-            ctx.save();
-            for (const obstacle of obstacles) {
-                const gradient = ctx.createLinearGradient(obstacle.x, obstacle.y, obstacle.x + obstacle.width, obstacle.y + obstacle.height);
-                gradient.addColorStop(0, 'rgba(23, 33, 62, 0.85)');
-                gradient.addColorStop(1, 'rgba(10, 16, 36, 0.92)');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-                ctx.strokeStyle = 'rgba(148, 163, 255, 0.18)';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-            }
-            ctx.restore();
-        }
-
-        function scaleObstacles(previousWidth, previousHeight, nextWidth, nextHeight) {
-            if (!previousWidth || !previousHeight || obstacles.length === 0) { return; }
-            const scaleX = nextWidth / previousWidth;
-            const scaleY = nextHeight / previousHeight;
-            for (const obstacle of obstacles) {
-                obstacle.x *= scaleX;
-                obstacle.y *= scaleY;
-                obstacle.width *= scaleX;
-                obstacle.height *= scaleY;
-            }
-        }
-
         window.addEventListener('resize', () => {
             resizeBackgroundCanvas();
             initStarfield();
@@ -1778,7 +1362,7 @@ body.endless-mode #gameCanvas {
             });
         });
 
-        const GAME_VERSION = "v6.7";
+        const GAME_VERSION = "v6.5";
         const PLAYER_WIDTH = 30;
         const PLAYER_HEIGHT = 30;
         const PROJECTILE_WIDTH = 10;
@@ -2121,11 +1705,6 @@ body.endless-mode #gameCanvas {
         });
         canvas.addEventListener('mousedown', (e) => {
             if (isGameEffectivelyPaused() || e.button !== 0) return;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = rect.width ? canvas.width / rect.width : 1;
-            const scaleY = rect.height ? canvas.height / rect.height : 1;
-            mouseX = (e.clientX - rect.left) * scaleX;
-            mouseY = (e.clientY - rect.top) * scaleY;
             mouseShootActive = true;
             if (mouseAimActive && !aimbotActive && player1 && player1.health > 0) { player1.shoot(true); }
         });
@@ -2786,16 +2365,11 @@ body.endless-mode #gameCanvas {
                     const elapsed = Date.now() - this.dashStartTime;
                     const progress = Math.min(1, elapsed / this.dashDuration);
                     const dashStep = this.dashSpeed * (1 - 0.4 * progress) * (deltaTime/(1000/60));
-                    const originalX = this.x;
-                    const originalY = this.y;
-                    moveEntityWithObstacles(this, this.dashDirection.x * dashStep, this.dashDirection.y * dashStep);
-                    const movedX = this.x - originalX;
-                    const movedY = this.y - originalY;
-                    if (Math.abs(movedX) > 0.001 || Math.abs(movedY) > 0.001) {
-                        const magnitude = Math.hypot(movedX, movedY) || 1;
-                        this.lastMoveDx = movedX / magnitude;
-                        this.lastMoveDy = movedY / magnitude;
-                    }
+                    this.x += this.dashDirection.x * dashStep;
+                    this.y += this.dashDirection.y * dashStep;
+                    this.lastMoveDx = this.dashDirection.x;
+                    this.lastMoveDy = this.dashDirection.y;
+                    this.x=Math.max(0,Math.min(this.x,CANVAS_WIDTH-this.width)); this.y=Math.max(0,Math.min(this.y,CANVAS_HEIGHT-this.height));
                     this.dashTrail.push({ x: this.x + this.width/2, y: this.y + this.height/2, life: 220, maxLife: 220 });
                     if (this.dashTrail.length > 18) { this.dashTrail.shift(); }
                     this.engineParticleTimer+=deltaTime;
@@ -2944,12 +2518,6 @@ body.endless-mode #gameCanvas {
                 if (this.isDivineProtectionActive && this.health < 20 && this.health > 0) {
                     this.health = 1000;
                     updateUI();
-                }
-
-                for (let i = this.dashTrail.length - 1; i >= 0; i--) {
-                    const trail = this.dashTrail[i];
-                    trail.life -= deltaTime;
-                    if (trail.life <= 0) { this.dashTrail.splice(i, 1); }
                 }
 
                 this.updateAimDirection(deltaTime); this.move(deltaTime); this.shoot();
@@ -3336,21 +2904,10 @@ body.endless-mode #gameCanvas {
             newWidth = Math.max(320, Math.min(newWidth, 2560));
             newHeight = Math.max(180, Math.min(newHeight, 1440));
 
-            const displayWidth = Math.round(newWidth);
-            const displayHeight = Math.round(newHeight);
-
-            const previousWidth = CANVAS_WIDTH || displayWidth;
-            const previousHeight = CANVAS_HEIGHT || displayHeight;
-
-            canvas.style.width = `${displayWidth}px`;
-            canvas.style.height = `${displayHeight}px`;
-
-            canvas.width = displayWidth;
-            canvas.height = displayHeight;
-            CANVAS_WIDTH = displayWidth;
-            CANVAS_HEIGHT = displayHeight;
-            scaleObstacles(previousWidth, previousHeight, CANVAS_WIDTH, CANVAS_HEIGHT);
-            ensureEntityOutsideObstacles(player1);
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            CANVAS_WIDTH = newWidth;
+            CANVAS_HEIGHT = newHeight;
 
             if (player1) {
                 player1.x = Math.max(0, Math.min(player1.x, CANVAS_WIDTH - player1.width));
