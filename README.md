@@ -1,6 +1,8 @@
-Strikr is a simple and interesting game i've made as a little side project. This "game" is still in extremely BETA AND EARLY ACCESS. LOTS OF GAME ELEMENTS WILL BE UNPOLISHED AND BUGGY AND UGLY. I'm working on constant updates but they take a lot of time so yeah! 
+## Strikr is a simple and interesting game i've made as a little side project. This "game" is still in extremely BETA AND EARLY ACCESS. LOTS OF GAME ELEMENTS WILL BE UNPOLISHED AND BUGGY AND UGLY. I'm working on constant updates but they take a lot of time so yeah! 
 
-Welcome to the Plus version! This is an improved, better and more maintained version of the game! If you'd like to play AN ACCESS CODE IS REQUIRED!!!!! To get an access code Click on Issues and make a new request with:
+## Welcome to the Plus version!
+
+This is an improved, better and more maintained version of the game! If you'd like to play AN ACCESS CODE IS REQUIRED!!!!! To get an access code Click on Issues and make a new request with:
 1. Why do you want to play this version?
 2. Do you agree to not leak your access code to anyone else?
 3. Will you be willing to contribute to the game upon request?
