@@ -31,7 +31,7 @@ const statusMessages = {
   [ROOM_STATUS.ERROR]: 'An error occurred.'
 };
 
-export function initializeLobby({ serverUrl, onRoomJoined, onSoloStart }) {
+export function initializeLobby({ serverUrl, onRoomJoined }) {
   const overlay = document.getElementById('lobbyOverlay');
   const roomCodeInput = document.getElementById('roomCodeInput');
   const displayNameInput = document.getElementById('displayNameInput');
@@ -42,7 +42,6 @@ export function initializeLobby({ serverUrl, onRoomJoined, onSoloStart }) {
   const playerList = document.getElementById('lobbyPlayerList');
   const errorBanner = document.getElementById('lobbyErrorBanner');
   const errorText = document.getElementById('lobbyErrorText');
-  const playSoloButton = document.getElementById('playSoloButton');
 
   if (!overlay) {
     throw new Error('Lobby overlay element missing.');
@@ -157,16 +156,6 @@ export function initializeLobby({ serverUrl, onRoomJoined, onSoloStart }) {
     resetRoomState();
     overlay.classList.remove('hidden');
   });
-
-  if (playSoloButton) {
-    playSoloButton.addEventListener('click', () => {
-      overlay.classList.add('hidden');
-      hasJoined = true;
-      resetRoomState();
-      clearError();
-      onSoloStart?.();
-    });
-  }
 
   return {
     show({ playerName = '' } = {}) {
