@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strikr - v6.5</title>
+    <title>Strikr - v6.7</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
@@ -126,6 +126,45 @@ body[data-theme="inferno"] {
     --star-primary: rgba(255, 244, 214, 0.95);
     --star-secondary: rgba(255, 149, 128, 0.85);
     --star-tertiary: rgba(255, 94, 94, 0.8);
+}
+body[data-theme="nocturne"] {
+    --bg-gradient: radial-gradient(140% 200% at 50% -15%, rgba(36, 25, 84, 0.6), rgba(5, 9, 28, 0.98));
+    --bg-overlay: linear-gradient(205deg, rgba(12, 20, 48, 0.9) 0%, rgba(5, 11, 32, 0.96) 60%, rgba(2, 5, 16, 0.98) 100%);
+    --panel-bg: rgba(9, 15, 36, 0.78);
+    --panel-border: rgba(129, 140, 248, 0.28);
+    --accent: #4f46e5;
+    --accent-strong: #6366f1;
+    --accent-soft: rgba(79, 70, 229, 0.22);
+    --glow: rgba(99, 102, 241, 0.45);
+    --star-primary: rgba(226, 232, 255, 0.95);
+    --star-secondary: rgba(129, 140, 248, 0.85);
+    --star-tertiary: rgba(56, 189, 248, 0.78);
+}
+body[data-theme="abyss"] {
+    --bg-gradient: radial-gradient(150% 200% at 45% 0%, rgba(15, 118, 110, 0.5), rgba(2, 8, 20, 0.98));
+    --bg-overlay: linear-gradient(210deg, rgba(2, 10, 25, 0.9) 0%, rgba(2, 6, 23, 0.96) 60%, rgba(1, 4, 14, 0.98) 100%);
+    --panel-bg: rgba(4, 12, 28, 0.8);
+    --panel-border: rgba(45, 212, 191, 0.26);
+    --accent: #14b8a6;
+    --accent-strong: #0f766e;
+    --accent-soft: rgba(20, 184, 166, 0.24);
+    --glow: rgba(20, 184, 166, 0.45);
+    --star-primary: rgba(224, 255, 248, 0.95);
+    --star-secondary: rgba(94, 234, 212, 0.82);
+    --star-tertiary: rgba(56, 189, 248, 0.78);
+}
+body[data-theme="midnight"] {
+    --bg-gradient: radial-gradient(150% 210% at 55% -10%, rgba(88, 28, 135, 0.6), rgba(20, 6, 32, 0.98));
+    --bg-overlay: linear-gradient(220deg, rgba(30, 6, 48, 0.9) 0%, rgba(20, 5, 30, 0.96) 60%, rgba(8, 1, 18, 0.98) 100%);
+    --panel-bg: rgba(28, 8, 40, 0.78);
+    --panel-border: rgba(236, 72, 153, 0.3);
+    --accent: #c084fc;
+    --accent-strong: #ec4899;
+    --accent-soft: rgba(236, 72, 153, 0.22);
+    --glow: rgba(192, 132, 252, 0.42);
+    --star-primary: rgba(252, 231, 243, 0.95);
+    --star-secondary: rgba(244, 114, 182, 0.82);
+    --star-tertiary: rgba(196, 181, 253, 0.78);
 }
 #versionDisplay {
     position: fixed;
@@ -260,6 +299,15 @@ body[data-theme="inferno"] {
 .theme-oasis::before {
     background: linear-gradient(120deg, rgba(37, 99, 235, 0.55), rgba(56, 189, 248, 0.5));
 }
+.theme-nocturne::before {
+    background: linear-gradient(120deg, rgba(67, 56, 202, 0.55), rgba(14, 165, 233, 0.4));
+}
+.theme-abyss::before {
+    background: linear-gradient(120deg, rgba(2, 6, 23, 0.7), rgba(59, 130, 246, 0.45));
+}
+.theme-midnight::before {
+    background: linear-gradient(120deg, rgba(124, 58, 237, 0.55), rgba(236, 72, 153, 0.45));
+}
 .theme-aurora .theme-card__swatch {
     background: radial-gradient(circle at 30% 30%, #f0abfc, #6366f1);
 }
@@ -271,6 +319,15 @@ body[data-theme="inferno"] {
 }
 .theme-oasis .theme-card__swatch {
     background: radial-gradient(circle at 20% 20%, #bbf7d0, #22d3ee);
+}
+.theme-nocturne .theme-card__swatch {
+    background: radial-gradient(circle at 25% 25%, #818cf8, #312e81);
+}
+.theme-abyss .theme-card__swatch {
+    background: radial-gradient(circle at 25% 25%, #0ea5e9, #0f172a);
+}
+.theme-midnight .theme-card__swatch {
+    background: radial-gradient(circle at 25% 25%, #f472b6, #5b21b6);
 }
 .session-badges {
     display: flex;
@@ -384,6 +441,11 @@ body[data-theme="inferno"] {
     border: 1px solid var(--panel-border);
     background: rgba(0, 8, 24, 0.45);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+.canvas-wrapper {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
 }
 #gameCanvas {
     width: 100%;
@@ -740,12 +802,12 @@ body.endless-mode #gameCanvas {
  
     <div id="licensePopup" class="hidden">
         <h2 class="popup-title">Game Integrity Protection GIP</h2>
-        <p class="mb-4">Please enter your license key to play this game.</p>
+        <p class="mb-4">Please enter the integrity code to play this game.</p>
         <div class="input-group">
-            <input type="text" id="licenseKeyInput" placeholder="Enter License Key">
-            <button id="submitLicenseKeyButton" class="button button-primary" type="button">Verify Key</button>
+            <input type="text" id="licenseKeyInput" placeholder="Enter Integrity Code">
+            <button id="submitLicenseKeyButton" class="button button-primary" type="button">Verify Code</button>
         </div>
-        <p id="licenseErrorText" class="error-text hidden">Invalid License Key!</p>
+        <p id="licenseErrorText" class="error-text hidden">Invalid Integrity Code!</p>
     </div>
 
     <div id="namePopup" class="hidden">
@@ -768,12 +830,12 @@ body.endless-mode #gameCanvas {
     <!-- NEW ADMIN PASSWORD POPUP -->
     <div id="adminPasswordPopup" class="hidden">
         <h2 class="popup-title">Admin Access</h2>
-        <p class="mb-4">Enter the password to access admin features.</p>
+        <p class="mb-4">Enter the integrity code to access admin features.</p>
         <div class="input-group">
-            <input type="password" id="adminPasswordInput" placeholder="Enter Password">
+            <input type="password" id="adminPasswordInput" placeholder="Enter Integrity Code">
             <button id="submitAdminPasswordButton" class="button button-godmode" type="button">Submit</button>
         </div>
-        <p id="adminPasswordError" class="error-text hidden">Invalid Password!</p>
+        <p id="adminPasswordError" class="error-text hidden">Invalid Code!</p>
         <button id="closeAdminPasswordPopup" class="button-close" type="button">&times;</button>
     </div>
     <!-- END NEW POPUP -->
@@ -832,6 +894,18 @@ body.endless-mode #gameCanvas {
                             <span class="theme-card__swatch"></span>
                             <span>Solar Oasis</span>
                         </button>
+                        <button class="theme-card theme-nocturne" type="button" data-theme-option="nocturne">
+                            <span class="theme-card__swatch"></span>
+                            <span>Nocturne Bloom</span>
+                        </button>
+                        <button class="theme-card theme-abyss" type="button" data-theme-option="abyss">
+                            <span class="theme-card__swatch"></span>
+                            <span>Abyssal Veil</span>
+                        </button>
+                        <button class="theme-card theme-midnight" type="button" data-theme-option="midnight">
+                            <span class="theme-card__swatch"></span>
+                            <span>Midnight Prism</span>
+                        </button>
                     </div>
                 </div>
                 <div class="session-badges">
@@ -865,7 +939,14 @@ body.endless-mode #gameCanvas {
             </div>
 
             <div id="stageDisplay" class="stage-info">Stage 1: Wave 1</div>
-            <canvas id="gameCanvas"></canvas>
+            <div class="canvas-wrapper">
+                <canvas id="gameCanvas"></canvas>
+                <div id="pauseOverlay" class="pause-overlay hidden">
+                    <div id="pauseStatusText" class="pause-overlay__title">Paused</div>
+                    <div id="pauseHintText" class="pause-overlay__subtitle">Press P to resume</div>
+                    <div id="pauseCountdownText" class="pause-overlay__countdown hidden">3</div>
+                </div>
+            </div>
 
             <div class="extra-buttons-container">
                 <button id="aimbotButton" class="button button-secondary" type="button">Aimbot</button>
@@ -900,7 +981,8 @@ body.endless-mode #gameCanvas {
             <div id="changelogPopup" class="hidden">
                 <h2 class="popup-title changelog-title">Changelog</h2>
                 <div id="changelogContent">
-                    <p>6.6: Huge game redesign and renamed game to Strikr, Nathan became trusted tester, new codes, new everything, themes and more!
+                    <p>6.7: Added pause countdown, drifting starfields, darker cosmic themes, and procedural obstacles. Universal integrity code is now 'redsnowadmin123'.</p>
+                    <p>6.6: Huge game redesign and renamed game to Strikr, Nathan became trusted tester, new codes, new everything, themes and more!</p>
                     <p>6.5: Revive password changed to 'ultrasecretpasscode'.</p>
                     <p>6.4: Added password protection to admin controls ('Invincibility', '+100 Health', 'Finish Game'). Admin access is now granted for the entire session after one successful login. Game version updated and title renamed to 'ShootyShooty BangBang Plus'.</p>
                     <p>6.2: fixed enemy health bar display. Added Green (+50HP) and Golden (+150HP) health power-ups cause duh. Enhanced particle effects for explosions and power-up collection. Screen shake on Smash & enemy death >:) </p>
@@ -996,6 +1078,10 @@ body.endless-mode #gameCanvas {
         const loadingWelcomeText = document.getElementById('loadingWelcomeText');
         const loadingProgressBar = document.getElementById('loadingProgressBar');
         const mainGameContent = document.getElementById('mainGameContent');
+        const pauseOverlay = document.getElementById('pauseOverlay');
+        const pauseStatusText = document.getElementById('pauseStatusText');
+        const pauseHintText = document.getElementById('pauseHintText');
+        const pauseCountdownText = document.getElementById('pauseCountdownText');
 
         // NEW: Admin Popup Elements
         const adminPasswordPopup = document.getElementById('adminPasswordPopup');
@@ -1231,6 +1317,9 @@ body.endless-mode #gameCanvas {
             supernova: 'Supernova',
             nebula: 'Nebula Drift',
             oasis: 'Solar Oasis',
+            nocturne: 'Nocturne Bloom',
+            abyss: 'Abyssal Veil',
+            midnight: 'Midnight Prism',
             endless: 'Endless Drift',
             inferno: 'Inferno'
         };
@@ -1314,6 +1403,7 @@ body.endless-mode #gameCanvas {
         let gameTargets = [];
         let enemyProjectiles = [];
         let powerUps = [];
+        let obstacles = [];
         let playerScore = 0;
         let mouseAimActive = false;
         let mouseShootActive = false;
@@ -1330,7 +1420,7 @@ body.endless-mode #gameCanvas {
         let globalPlayerName = "Player";
         // NEW: Admin Password State
         let pendingAdminAction = null;
-        const ADMIN_PASSWORD = "admin123"; // <-- YOU CAN CHANGE THE PASSWORD HERE
+        const ADMIN_PASSWORD = "redsnowadmin123"; // <-- YOU CAN CHANGE THE PASSWORD HERE
         let isAdminAccessGranted = false; // <-- NEW: Tracks if admin is unlocked
 
         const messageBox = document.getElementById('messageBox');
@@ -1371,6 +1461,9 @@ body.endless-mode #gameCanvas {
         versionDisplay.textContent = GAME_VERSION;
 
         function isGameEffectivelyPaused() {
+            if (gamePaused || resumeCountdownActive) {
+                return true;
+            }
             if (!mainGameContent.classList.contains('hidden')) {
                  // UPDATED: Added adminPasswordPopup
                  return messageBox.classList.contains('visible') ||
@@ -1378,6 +1471,122 @@ body.endless-mode #gameCanvas {
                         adminPasswordPopup.classList.contains('visible');
             }
             return true;
+        }
+
+        function setPauseOverlayVisibility(visible) {
+            if (!pauseOverlay) { return; }
+            if (visible) {
+                pauseOverlay.classList.remove('hidden');
+                requestAnimationFrame(() => pauseOverlay.classList.add('visible'));
+            } else {
+                pauseOverlay.classList.remove('visible');
+                setTimeout(() => {
+                    if (!pauseOverlay.classList.contains('visible')) {
+                        pauseOverlay.classList.add('hidden');
+                    }
+                }, 220);
+            }
+        }
+
+        function updatePauseOverlayTexts({ title, subtitle, countdown, showCountdown }) {
+            if (pauseStatusText && typeof title === 'string') {
+                pauseStatusText.textContent = title;
+            }
+            if (pauseHintText && typeof subtitle === 'string') {
+                pauseHintText.textContent = subtitle;
+            }
+            if (pauseCountdownText) {
+                if (showCountdown) {
+                    pauseCountdownText.classList.remove('hidden');
+                    pauseCountdownText.textContent = `${countdown ?? ''}`;
+                } else {
+                    pauseCountdownText.classList.add('hidden');
+                }
+            }
+        }
+
+        function cancelResumeCountdown() {
+            if (resumeCountdownTimer) {
+                clearInterval(resumeCountdownTimer);
+                resumeCountdownTimer = null;
+            }
+            resumeCountdownActive = false;
+            resumeCountdownRemaining = 0;
+            if (pauseCountdownText) {
+                pauseCountdownText.classList.add('hidden');
+            }
+        }
+
+        function resetPauseState() {
+            cancelResumeCountdown();
+            gamePaused = false;
+            setPauseOverlayVisibility(false);
+        }
+
+        function startResumeCountdown() {
+            if (resumeCountdownActive) { return; }
+            resumeCountdownActive = true;
+            resumeCountdownRemaining = 3;
+            updatePauseOverlayTexts({
+                title: 'Resuming',
+                subtitle: 'Get ready...',
+                countdown: resumeCountdownRemaining,
+                showCountdown: true
+            });
+            setPauseOverlayVisibility(true);
+            resumeCountdownTimer = setInterval(() => {
+                resumeCountdownRemaining -= 1;
+                if (resumeCountdownRemaining > 0) {
+                    updatePauseOverlayTexts({
+                        title: 'Resuming',
+                        subtitle: 'Get ready...',
+                        countdown: resumeCountdownRemaining,
+                        showCountdown: true
+                    });
+                } else {
+                    clearInterval(resumeCountdownTimer);
+                    resumeCountdownTimer = null;
+                    resumeCountdownActive = false;
+                    gamePaused = false;
+                    updatePauseOverlayTexts({
+                        title: 'Go!',
+                        subtitle: 'Back into the fray!',
+                        showCountdown: false
+                    });
+                    setTimeout(() => setPauseOverlayVisibility(false), 200);
+                    lastFrameTime = performance.now();
+                }
+            }, 1000);
+        }
+
+        function engagePause() {
+            cancelResumeCountdown();
+            gamePaused = true;
+            updatePauseOverlayTexts({
+                title: 'Game Paused',
+                subtitle: 'Press P again to resume (3s countdown)',
+                showCountdown: false
+            });
+            setPauseOverlayVisibility(true);
+        }
+
+        function handlePauseToggle() {
+            if (!gameRunning || !player1 || player1.health <= 0) { return; }
+            if (messageBox.classList.contains('visible') || changelogPopup.classList.contains('visible') || adminPasswordPopup.classList.contains('visible')) {
+                return;
+            }
+            if (!gamePaused) {
+                engagePause();
+            } else if (resumeCountdownActive) {
+                cancelResumeCountdown();
+                updatePauseOverlayTexts({
+                    title: 'Game Paused',
+                    subtitle: 'Countdown cancelled. Press P again to resume.',
+                    showCountdown: false
+                });
+            } else {
+                startResumeCountdown();
+            }
         }
 
         let particles = [];
@@ -1431,6 +1640,13 @@ body.endless-mode #gameCanvas {
                     else if (document.activeElement === codeInput) submitCodeButton.click();
                     else if (document.activeElement === adminPasswordInput) submitAdminPasswordButton.click(); // NEW
                 }
+                return;
+            }
+
+
+            if (e.code === 'KeyP') {
+                e.preventDefault();
+                handlePauseToggle();
                 return;
             }
 
@@ -1508,7 +1724,7 @@ body.endless-mode #gameCanvas {
         }
 
         submitLicenseKeyButton.addEventListener('click', () => {
-            if (licenseKeyInput.value.trim() === "64446644") {
+            if (licenseKeyInput.value.trim() === "redsnowadmin123") {
                 licenseErrorText.classList.add('hidden');
                 licenseKeyInput.classList.remove('input-error');
                 hidePopup(licensePopup);
@@ -1733,7 +1949,7 @@ body.endless-mode #gameCanvas {
                 }
                 hidePopup(messageBox); currentPopupAction = null;
             } else if (currentPopupAction === 'revive_code_input') {
-                if (code === "ultrasecretpasscode") {
+                if (code === "redsnowadmin123") {
                     player1.reset(false);
                     player1.health = player1.isDivineProtectionActive ? 1000 : player1.initialHealth;
                     player1.isInvulnerable = true; player1.invulnerableUntil = Date.now() + REVIVE_INVULNERABILITY_DURATION;
@@ -1922,8 +2138,7 @@ body.endless-mode #gameCanvas {
                     const distSq = dx*dx + dy*dy; const minDist = (this.size + other.size) * 0.6;
                     if (distSq < minDist*minDist && distSq > 0) { const dist = Math.sqrt(distSq); const force = this.repulsionForce * (1 - dist/minDist); repelX += (dx/dist)*force; repelY += (dy/dist)*force; }
                 });
-                this.x += (moveX + repelX) * dtFactor; this.y += (moveY + repelY) * dtFactor;
-                this.x = Math.max(0, Math.min(this.x, CANVAS_WIDTH - this.width)); this.y = Math.max(0, Math.min(this.y, CANVAS_HEIGHT - this.height));
+                moveEntityWithObstacles(this, (moveX + repelX) * dtFactor, (moveY + repelY) * dtFactor);
                 if (this.canShoot && Date.now() - this.lastShotTime > this.shootCooldown) {
                     this.lastShotTime = Date.now(); const aimDx = playerX+PLAYER_WIDTH/2-(this.x+this.width/2); const aimDy = playerY+PLAYER_HEIGHT/2-(this.y+this.height/2);
                     const aimDist = Math.sqrt(aimDx*aimDx + aimDy*aimDy); let sX=0,sY=0;
@@ -2179,8 +2394,21 @@ body.endless-mode #gameCanvas {
                 if(keysPressed[this.controls.up]){moveDy-=1;} if(keysPressed[this.controls.down]){moveDy+=1;}
                 const targetSpeed = (moveDx!==0||moveDy!==0)?this.speed:0; const acceleration=0.15; this.currentSpeed+=(targetSpeed-this.currentSpeed)*acceleration;
                 const effectiveSpeed = this.currentSpeed*(deltaTime/(1000/60));
-                if(moveDx!==0||moveDy!==0){ const dist=Math.sqrt(moveDx*moveDx+moveDy*moveDy); const nDx=moveDx/dist; const nDy=moveDy/dist; this.x+=nDx*effectiveSpeed; this.y+=nDy*effectiveSpeed; this.lastMoveDx=nDx; this.lastMoveDy=nDy; }
-                this.x=Math.max(0,Math.min(this.x,CANVAS_WIDTH-this.width)); this.y=Math.max(0,Math.min(this.y,CANVAS_HEIGHT-this.height));
+                const originalX = this.x;
+                const originalY = this.y;
+                if(moveDx!==0||moveDy!==0){
+                    const dist=Math.sqrt(moveDx*moveDx+moveDy*moveDy) || 1;
+                    const nDx=moveDx/dist;
+                    const nDy=moveDy/dist;
+                    moveEntityWithObstacles(this, nDx*effectiveSpeed, nDy*effectiveSpeed);
+                }
+                const movedX = this.x - originalX;
+                const movedY = this.y - originalY;
+                if(Math.abs(movedX) > 0.001 || Math.abs(movedY) > 0.001){
+                    const magnitude = Math.hypot(movedX, movedY) || 1;
+                    this.lastMoveDx = movedX / magnitude;
+                    this.lastMoveDy = movedY / magnitude;
+                }
                 this.engineParticleTimer+=deltaTime;
                 if(this.engineParticleTimer>this.engineParticleInterval && this.currentSpeed > this.speed*0.2){
                     this.engineParticleTimer=0; const particleCount=Math.floor(this.currentSpeed/this.speed*2)+1;
@@ -2450,7 +2678,12 @@ body.endless-mode #gameCanvas {
             for(let i=0;i<numToSpawn;i++){ const side=Math.floor(Math.random()*4); let x,y; const margin=50; if(side===0){x=Math.random()*CANVAS_WIDTH;y=-margin-Math.random()*50;}else if(side===1){x=CANVAS_WIDTH+margin+Math.random()*50;y=Math.random()*CANVAS_HEIGHT;}else if(side===2){x=Math.random()*CANVAS_WIDTH;y=CANVAS_HEIGHT+margin+Math.random()*50;}else{x=-margin-Math.random()*50;y=Math.random()*CANVAS_HEIGHT;} const type=availableTypes[Math.floor(Math.random()*availableTypes.length)]; gameTargets.push(new Target(x,y,type)); }
         };
         function initializeStage(stage, wave) {
+            resetPauseState();
             currentStage = stage; currentWave = wave; gameTargets = []; enemyProjectiles = []; powerUps = [];
+            if (wave === 1 || obstacles.length === 0) {
+                obstacles = generateObstacles();
+            }
+            ensureEntityOutsideObstacles(player1);
             if (gameMode === 'endless' || gameMode === 'hell') { stageDisplay.textContent = `${gameMode.charAt(0).toUpperCase() + gameMode.slice(1)} Mode: Wave ${wave}`; }
             else { stageDisplay.textContent = `Stage ${stage}: Wave ${wave}`; }
 
@@ -2508,7 +2741,7 @@ body.endless-mode #gameCanvas {
             if (!player1 || player1.isSmashing) { return; }
             player1.projectiles.forEach((p, pIndex) => { for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; if (p.x < target.x+target.width && p.x+p.width > target.x && p.y < target.y+target.height && p.y+p.height > target.y) { target.takeDamage(10); player1.projectiles.splice(pIndex,1); playerScore+=SCORE_PER_HIT; if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,15 + Math.floor(target.size/2),target.color,[3,target.size/2.5],[1.5,5],[350,800]); gameTargets.splice(tIndex,1); if(player1.isSmashing) { /* No screen shake if smash killed it */ } else { screenShake(5, 150); } } break; }}});
             if (player1.isFiringBeam) { const beamAngle = player1.beamTargetAngle; const beamLength = CANVAS_WIDTH*1.5; for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; const tCX = target.x+target.width/2; const tCY = target.y+target.height/2; const pCX = player1.x+player1.width/2; const pCY = player1.y+player1.height/2; const dx = tCX-pCX; const dy = tCY-pCY; const distToP = Math.sqrt(dx*dx+dy*dy); if (distToP < beamLength) { const angleToT = Math.atan2(dy,dx); const angleDiff = Math.abs(normalizeAngle(beamAngle-angleToT)); if (angleDiff < Math.atan2(BEAM_THICKNESS/2,distToP) || distToP < target.size*0.8 ) { target.takeDamage(player1.beamDamagePerFrame*(lastFrameTime-(player1.beamFrameTime||lastFrameTime))/(1000/60)); playerScore+=SCORE_PER_BEAM_FRAME; if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,15 + Math.floor(target.size/2),target.color,[3,target.size/2.5],[1.5,5],[350,800]); gameTargets.splice(tIndex,1); screenShake(3,100); }}}} player1.beamFrameTime = lastFrameTime; } else { player1.beamFrameTime = null; }
-            for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; if (player1.x < target.x+target.width && player1.x+player1.width > target.x && player1.y < target.y+target.height && player1.y+player1.height > target.y) { player1.takeDamage(TARGET_CONTACT_DAMAGE); target.takeDamage(50); if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,10,target.color,[3,8],[2,5],[200,500]); gameTargets.splice(tIndex,1); screenShake(5,150); } else { const dx = target.x-player1.x; const dy = target.y-player1.y; const dist = Math.sqrt(dx*dx+dy*dy)||1; target.x+=(dx/dist)*10; target.y+=(dy/dist)*10; }}}
+            for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; if (player1.x < target.x+target.width && player1.x+player1.width > target.x && player1.y < target.y+target.height && player1.y+player1.height > target.y) { player1.takeDamage(TARGET_CONTACT_DAMAGE); target.takeDamage(50); if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,10,target.color,[3,8],[2,5],[200,500]); gameTargets.splice(tIndex,1); screenShake(5,150); } else { const dx = target.x-player1.x; const dy = target.y-player1.y; const dist = Math.sqrt(dx*dx+dy*dy)||1; moveEntityWithObstacles(target, (dx/dist)*10, (dy/dist)*10); }}}
             for (let epIndex = enemyProjectiles.length-1; epIndex >= 0; epIndex--) { const ep = enemyProjectiles[epIndex]; if (player1.health > 0 && ep.x < player1.x+player1.width && ep.x+ep.width > player1.x && ep.y < player1.y+player1.height && ep.y+ep.height > player1.y) { player1.takeDamage(ep.damage); enemyProjectiles.splice(epIndex,1); }}
             for (let puIndex = powerUps.length-1; puIndex >= 0; puIndex--) { const powerUp = powerUps[puIndex]; if (player1.x < powerUp.x+powerUp.size && player1.x+player1.width > powerUp.x && player1.y < powerUp.y+powerUp.size && player1.y+player1.height > powerUp.y) { player1.collectPowerUp(powerUp.type); powerUps.splice(puIndex,1); createParticle(powerUp.x + powerUp.size/2, powerUp.y + powerUp.size/2, 20, powerUp.pulseColor, [3,8], [2,5], [200,500]);}}
             if (!player1.isSmashing && gameTargets.length === 0 && gameRunning && player1.health > 0) { if (gameMode==='normal' && currentStage===COMPLETION_STAGE && currentWave===MAX_WAVES_PER_LEVEL) { showGameCompletionPopup(); } else { currentWave++; if (gameMode==='normal' && currentWave > MAX_WAVES_PER_LEVEL) { currentWave=1; currentStage++; targetsPerWaveBase=Math.min(10,targetsPerWaveBase+ (gameMode === 'hell' ? 2.2 : 1.2)); showTemporaryPopup(`Stage ${currentStage-1} Cleared! Onto Stage ${currentStage}!`); } else if (gameMode==='hell' && currentWave > MAX_WAVES_PER_LEVEL) { currentWave=1; currentStage++; targetsPerWaveBase=Math.min(20,targetsPerWaveBase+2.5); showTemporaryPopup(`Hell Stage ${currentStage-1} Cleared! Prepare for more!`); } else { showTemporaryPopup(`Wave ${currentWave-1} Cleared!`); } initializeStage(currentStage,currentWave); }}
@@ -2535,6 +2768,7 @@ body.endless-mode #gameCanvas {
 
 
         function showGameCompletionPopup() {
+            resetPauseState();
             gameRunning = false; messageText.textContent = "You have successfully beat all the stages! Now you can choose to go into Hell Mode, or Endless Mode.";
             codeInputSection.classList.add('hidden'); deathOptions.classList.add('hidden'); hellConfirmOptions.classList.add('hidden'); completionOptions.classList.remove('hidden');
             showPopup(messageBox); currentPopupAction = 'game_complete';
@@ -2558,6 +2792,7 @@ body.endless-mode #gameCanvas {
             player1.updateChargeIndicators();
         };
         function announceOutcome(message, isVictory) {
+            resetPauseState();
             gameRunning = false; messageText.textContent = message;
             codeInputSection.classList.add('hidden'); completionOptions.classList.add('hidden'); hellConfirmOptions.classList.add('hidden'); deathOptions.classList.remove('hidden');
             actionButton1.textContent = "Respawn"; actionButton2.classList.remove('hidden'); actionButton2.textContent = "Revive";
@@ -2585,12 +2820,12 @@ body.endless-mode #gameCanvas {
         });
 
         function saveScoreToLeaderboard(name, score) {
-            let l = JSON.parse(localStorage.getItem('ssbbLeaderboard_v6.5')) || [];
+            let l = JSON.parse(localStorage.getItem('ssbbLeaderboard_v6.7')) || [];
             l.push({ name, score, date: new Date().toLocaleDateString(), stage: `${gameMode.substring(0,1).toUpperCase()}-S${currentStage}W${currentWave}` });
-            l.sort((a,b) => b.score - a.score); l = l.slice(0,10); localStorage.setItem('ssbbLeaderboard_v6.5', JSON.stringify(l));
+            l.sort((a,b) => b.score - a.score); l = l.slice(0,10); localStorage.setItem('ssbbLeaderboard_v6.7', JSON.stringify(l));
         };
         function displayLeaderboard() {
-            leaderboardList.innerHTML = ""; const l = JSON.parse(localStorage.getItem('ssbbLeaderboard_v6.5')) || [];
+            leaderboardList.innerHTML = ""; const l = JSON.parse(localStorage.getItem('ssbbLeaderboard_v6.7')) || [];
             if (l.length === 0) { leaderboardList.innerHTML = "<li>No scores yet! Be the first!</li>"; return; }
             l.forEach(e => { const li = document.createElement('li'); li.textContent = `${e.name}: ${e.score} (${e.stage} - ${e.date})`; leaderboardList.appendChild(li); });
         };
@@ -2613,7 +2848,9 @@ body.endless-mode #gameCanvas {
                 checkCollisions();
             }
 
-            ctx.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT); updateAndDrawParticles(dT);
+            ctx.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+            drawObstacles();
+            updateAndDrawParticles(dT);
             if (player1) { player1.draw(); }
             gameTargets.forEach(t => { t.draw(); });
             enemyProjectiles.forEach((ep) => { ep.draw(); });
@@ -2684,6 +2921,7 @@ body.endless-mode #gameCanvas {
         };
 
         function startGame() {
+            resetPauseState();
             applyTheme(storedTheme, { persist: false });
             document.body.classList.add('select-none');
             mainGameContent.classList.remove('hidden');
@@ -2694,7 +2932,7 @@ body.endless-mode #gameCanvas {
             resizeCanvas(); window.addEventListener('resize', resizeCanvas);
             initializeStage(1,1);
             displayLeaderboard();
-            if (JSON.parse(localStorage.getItem('ssbbLeaderboard_v6.5'))?.length > 0) {
+            if (JSON.parse(localStorage.getItem('ssbbLeaderboard_v6.7'))?.length > 0) {
                 leaderboardContainer.classList.remove('hidden');
                 resizeCanvas();
             }
