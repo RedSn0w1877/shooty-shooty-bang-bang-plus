@@ -1372,6 +1372,10 @@ body.endless-mode #gameCanvas {
         const REVIVE_INVULNERABILITY_DURATION = 3000;
 
         let gameRunning = false;
+        let gamePaused = false;
+        let resumeCountdownActive = false;
+        let resumeCountdownRemaining = 0;
+        let resumeCountdownTimer = null;
         let currentStage = 1;
         let currentWave = 1;
         let targetsPerWaveBase = 2;
@@ -1395,7 +1399,7 @@ body.endless-mode #gameCanvas {
         let globalPlayerName = "Player";
         // NEW: Admin Password State
         let pendingAdminAction = null;
-        const ADMIN_PASSWORD = "redsnowadmin123"; // <-- YOU CAN CHANGE THE PASSWORD HERE
+        const VALID_CODES = ["ilovenathan", "hoa", "admin"];
         let isAdminAccessGranted = false; // <-- NEW: Tracks if admin is unlocked
 
         const messageBox = document.getElementById('messageBox');
@@ -1699,7 +1703,7 @@ body.endless-mode #gameCanvas {
         }
 
         submitLicenseKeyButton.addEventListener('click', () => {
-            if (licenseKeyInput.value.trim() === "redsnowadmin123") {
+            if (VALID_CODES.includes(licenseKeyInput.value.trim())) {
                 licenseErrorText.classList.add('hidden');
                 licenseKeyInput.classList.remove('input-error');
                 hidePopup(licensePopup);
@@ -1848,7 +1852,7 @@ body.endless-mode #gameCanvas {
         });
 
         submitAdminPasswordButton.addEventListener('click', () => {
-            if (adminPasswordInput.value === ADMIN_PASSWORD) {
+            if (VALID_CODES.includes(adminPasswordInput.value.trim())) {
                 isAdminAccessGranted = true; // <-- Grant access
                 hidePopup(adminPasswordPopup);
                 executeAdminAction(pendingAdminAction);
@@ -1922,7 +1926,7 @@ body.endless-mode #gameCanvas {
                 }
                 hidePopup(messageBox); currentPopupAction = null;
             } else if (currentPopupAction === 'revive_code_input') {
-                if (code === "redsnowadmin123") {
+                if (VALID_CODES.includes(code)) {
                     player1.reset(false);
                     player1.health = player1.isDivineProtectionActive ? 1000 : player1.initialHealth;
                     player1.isInvulnerable = true; player1.invulnerableUntil = Date.now() + REVIVE_INVULNERABILITY_DURATION;
