@@ -2996,6 +2996,121 @@ class Bot extends FoxPlayer {
                 }
             }
 
+            shoot() {
+                if (this.isDowned) return;
+                const currentTime = Date.now();
+                const currentShootDelay = (Date.now() < this.rapidFireActiveUntil) ? this.shootDelayBase / 2 : this.shootDelayBase;
+                const actualShootDelay = AIMBOT_SHOOT_DELAY * 2; // Bots shoot a bit slower
+
+                let attemptShot = false;
+                if (this.actionState === 'FIGHTING' && this.targetEntity) {
+                     attemptShot = true;
+                }
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.width * pulseScale, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 0, 0, ${0.4 + 0.2 * Math.sin(Date.now() / 150)})`;
+                    ctx.fill();
+
+                    const muzzleOffsetX = Math.cos(this.aimAngle) * (this.width * 0.5);
+                    const muzzleOffsetY = Math.sin(this.aimAngle) * (this.height * 0.5);
+                    createParticle( this.x+this.width/2 + muzzleOffsetX, this.y+this.height/2 + muzzleOffsetY, 5, `rgba(255,223,186,${0.5+Math.random()*0.5})`,[3,7],[2,4],[50,150],Math.PI/4 );
+                    createParticle( this.x+this.width/2 + muzzleOffsetX, this.y+this.height/2 + muzzleOffsetY, 3, 'rgba(255,255,255,0.7)',[2,4],[1,2],[40,90],Math.PI/6 );
+
+                    for (let i = 0; i < numBullets; i++) {
+                        const angleOffset = (i - (numBullets - 1) / 2) * spreadAngle;
+                        const currentAngle = this.aimAngle + angleOffset;
+                        const cosA = Math.cos(currentAngle); const sinA = Math.sin(currentAngle);
+                        const startX = this.x + this.width/2 + cosA * (this.width * 0.5);
+                        const startY = this.y + this.height/2 + sinA * (this.height * 0.5);
+                        this.projectiles.push(new Projectile( startX, startY, cosA*this.type.projectileSpeed, sinA*this.type.projectileSpeed, this.type.projectileColor ));
+                    }
+                }
+            }
+
+            botLogic(deltaTime) {
+                if (Date.now() - this.lastLogicUpdate < 200) return; // Update logic 5 times a second
+                this.lastLogicUpdate = Date.now();
+
+                // 1. Check if anyone needs reviving
+                let needsRevival = null;
+                for (const e of entities) {
+                    if (e !== this && e.isDowned && !e.isBeingRevived) {
+                         // Find closest downed entity
+                         if (!needsRevival || Math.hypot(e.x-this.x, e.y-this.y) < Math.hypot(needsRevival.x-this.x, needsRevival.y-this.y)) {
+                              needsRevival = e;
+                         }
+                    }
+                }
+
+                // 2. Check if under attack / nearby enemies
+                let closestEnemy = null;
+                let minEnemDist = Infinity;
+                gameTargets.forEach(t => {
+                    const d = Math.hypot(t.x - this.x, t.y - this.y);
+                    if (d < minEnemDist) { minEnemDist = d; closestEnemy = t; }
+                });
+
+                // Check for incoming projectiles
+                let incomingDanger = false;
+                enemyProjectiles.forEach(ep => {
+                     const d = Math.hypot(ep.x - this.x, ep.y - this.y);
+                     if (d < 150) incomingDanger = true;
+                });
+
+                // Logic State Machine
+                if (needsRevival) {
+                    if (incomingDanger || (closestEnemy && minEnemDist < 100)) {
+                         // Under heavy fire, fight back before reviving
+                         this.actionState = 'FIGHTING';
+                         this.targetEntity = closestEnemy;
+                         if (this.revivingTarget) {
+                             this.revivingTarget.isBeingRevived = false;
+                             this.revivingTarget.reviveProgress = 0;
+                             this.revivingTarget = null;
+                         }
+                    } else {
+                        // Coast is relatively clear, go revive
+                        this.targetEntity = null;
+                        if (this.revivingTarget !== needsRevival && this.revivingTarget) {
+                            this.revivingTarget.isBeingRevived = false;
+                            this.revivingTarget.reviveProgress = 0;
+                        }
+                        this.revivingTarget = needsRevival;
+
+                        const distToDowned = Math.hypot(this.revivingTarget.x - this.x, this.revivingTarget.y - this.y);
+                        if (distToDowned <= this.width) {
+                            this.actionState = 'REVIVING';
+                            this.revivingTarget.isBeingRevived = true;
+                        } else {
+                            this.actionState = 'MOVING_TO_REVIVE';
+                            this.revivingTarget.isBeingRevived = false; // Only true when actually standing on them
+                        }
+                    }
+                } else {
+                    // No one needs reviving
+                    if (this.revivingTarget) {
+                         this.revivingTarget.isBeingRevived = false;
+                         this.revivingTarget.reviveProgress = 0;
+                         this.revivingTarget = null;
+                    }
+                    if (closestEnemy && minEnemDist < 600) {
+                        this.actionState = 'FIGHTING';
+                        this.targetEntity = closestEnemy;
+
+                        // Use abilities if appropriate
+                        if (this.beamReady) this.fireBeam();
+                        if (this.smashReady && minEnemDist < 200) this.fireSmash();
+                        if (incomingDanger && minEnemDist < 150) this.tryDash();
+
+                    } else {
+                        this.actionState = 'IDLE';
+                        this.targetEntity = null;
+                    }
+                }
+                super.draw(ctx);
+            }
+
             update(deltaTime) {
                 if (this.health <= 0 && !this.isDowned) { return; }
 
@@ -3066,34 +3181,7 @@ class Bot extends FoxPlayer {
             }
         }
 
-        class Projectile{
-            constructor(x,y,sX,sY,c){
-                this.x=x-PROJECTILE_WIDTH/2;this.y=y-PROJECTILE_HEIGHT/2; this.width=PROJECTILE_WIDTH;this.height=PROJECTILE_HEIGHT;
-                this.speedX=sX;this.speedY=sY;this.color=c;
-                this.trail = []; this.maxTrailLength = 5;
-                this.createdAt = Date.now();
-                this.maxLifetime = 5000;
-                this.shouldRemove = false;
-            }
-            draw(){
-                for (let i = 0; i < this.trail.length; i++) { const point = this.trail[i]; const alpha = 0.5 * (i / this.trail.length); ctx.fillStyle = `hsla(50, 100%, 70%, ${alpha})`; ctx.beginPath(); const trailWidth = this.width*0.6*((this.trail.length-i)/this.trail.length); const trailHeight = this.height*0.6*((this.trail.length-i)/this.trail.length); ctx.ellipse(point.x+this.width/2,point.y+this.height/2,trailWidth/2,trailHeight/2,0,0,Math.PI*2); ctx.fill(); }
-                ctx.fillStyle=this.color; ctx.beginPath(); const r = Math.min(this.width,this.height)/3; ctx.moveTo(this.x+r,this.y); ctx.arcTo(this.x+this.width,this.y,this.x+this.width,this.y+this.height,r); ctx.arcTo(this.x+this.width,this.y+this.height,this.x,this.y+this.height,r); ctx.arcTo(this.x,this.y+this.height,this.x,this.y,r); ctx.arcTo(this.x,this.y,this.x+this.width,this.y,r); ctx.closePath(); ctx.fill();
-                ctx.fillStyle = "rgba(255,255,255,0.5)"; ctx.beginPath(); ctx.ellipse(this.x+this.width/2,this.y+this.height/2,this.width/3,this.height/3,0,0,Math.PI*2); ctx.fill();
-            }
-            update(dT){
-                const dF=dT/(1000/60);
-                this.x+=this.speedX*dF; this.y+=this.speedY*dF;
 
-                if (this.x <= 0) { this.x = 0; this.speedX = Math.abs(this.speedX); }
-                else if (this.x + this.width >= CANVAS_WIDTH) { this.x = CANVAS_WIDTH - this.width; this.speedX = -Math.abs(this.speedX); }
-                if (this.y <= 0) { this.y = 0; this.speedY = Math.abs(this.speedY); }
-                else if (this.y + this.height >= CANVAS_HEIGHT) { this.y = CANVAS_HEIGHT - this.height; this.speedY = -Math.abs(this.speedY); }
-
-                this.trail.push({ x: this.x, y: this.y }); if (this.trail.length > this.maxTrailLength) { this.trail.shift(); }
-
-                if (Date.now() - this.createdAt > this.maxLifetime) { this.shouldRemove = true; }
-            }
-        }
 
         let lastFrameTime = 0;
 
@@ -3140,9 +3228,25 @@ class Bot extends FoxPlayer {
             resetPauseState();
             currentStage = stage; currentWave = wave; gameTargets = []; enemyProjectiles = []; powerUps = [];
             if (wave === 1 || obstacles.length === 0) {
-                obstacles = generateObstacles();
+                obstacles = [];
+                for(let i=0; i<5; i++) {
+                    obstacles.push({
+                        x: Math.random() * (CANVAS_WIDTH - 100),
+                        y: Math.random() * (CANVAS_HEIGHT - 100),
+                        width: 50 + Math.random() * 100,
+                        height: 50 + Math.random() * 100
+                    });
+                }
             }
-            ensureEntityOutsideObstacles(player1);
+            function ensureEntityOutsideObstacles(entity) {
+            for (let obs of obstacles) {
+                if (entity.x < obs.x + obs.width && entity.x + (entity.width||entity.size) > obs.x &&
+                    entity.y < obs.y + obs.height && entity.y + (entity.height||entity.size) > obs.y) {
+                    entity.x = obs.x - (entity.width||entity.size) - 5;
+                }
+            }
+        }
+        ensureEntityOutsideObstacles(player1);
             if (gameMode === 'endless' || gameMode === 'hell') { stageDisplay.textContent = `${gameMode.charAt(0).toUpperCase() + gameMode.slice(1)} Mode: Wave ${wave}`; }
             else { stageDisplay.textContent = `Stage ${stage}: Wave ${wave}`; }
 
@@ -3505,5 +3609,3 @@ class Bot extends FoxPlayer {
     </script>
 </body>
 </html>
-
-
