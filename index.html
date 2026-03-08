@@ -2305,343 +2305,7 @@ body.player-downed {
             }
         }
 
-        class Bot extends FoxPlayer {
-            constructor(x, y, foxTypeName) {
-                super(x, y, foxTypeName, { up:'', down:'', left:'', right:'', shoot:'', beam:'', smash:'' }); // Dummy controls
-                this.isPlayer = false;
-                this.targetEntity = null; // Either an enemy to shoot or an entity to revive
-                this.revivingTarget = null;
-                this.actionState = 'IDLE'; // IDLE, FIGHTING, MOVING_TO_REVIVE, REVIVING, EVADING
-                this.color = `hsl(${Math.random()*360}, 80%, 60%)`; // Distinguish bots visually slightly
-                this.lastLogicUpdate = 0;
-            }
-
-            updateAimDirection(deltaTime) {
-                if (this.isDowned) return;
-
-                // Bot aiming logic
-                if (this.targetEntity && !this.targetEntity.isDowned && this.actionState === 'FIGHTING') {
-                    const dx = this.targetEntity.x + this.targetEntity.width/2 - (this.x + this.width/2);
-                    const dy = this.targetEntity.y + this.targetEntity.height/2 - (this.y + this.height/2);
-                    this.aimAngle = Math.atan2(dy, dx);
-                } else if (this.actionState === 'MOVING_TO_REVIVE' || this.actionState === 'REVIVING') {
-                     // Look at who we are reviving
-                     if (this.revivingTarget) {
-                         const dx = this.revivingTarget.x + this.revivingTarget.width/2 - (this.x + this.width/2);
-                         const dy = this.revivingTarget.y + this.revivingTarget.height/2 - (this.y + this.height/2);
-                         this.aimAngle = Math.atan2(dy, dx);
-                     }
-                }
-
-                this.keyboardAimVector.x = Math.cos(this.aimAngle);
-                this.keyboardAimVector.y = Math.sin(this.aimAngle);
-            }
-
-            move(deltaTime) {
-                if(this.isDashing && !this.isDowned){
-                    const elapsed = Date.now() - this.dashStartTime;
-                    const progress = Math.min(1, elapsed / this.dashDuration);
-                    const dashStep = this.dashSpeed * (1 - 0.4 * progress) * (deltaTime/(1000/60));
-                    this.x += this.dashDirection.x * dashStep;
-                    this.y += this.dashDirection.y * dashStep;
-                    this.lastMoveDx = this.dashDirection.x;
-                    this.lastMoveDy = this.dashDirection.y;
-                    this.x=Math.max(0,Math.min(this.x,CANVAS_WIDTH-this.width)); this.y=Math.max(0,Math.min(this.y,CANVAS_HEIGHT-this.height));
-                    this.dashTrail.push({ x: this.x + this.width/2, y: this.y + this.height/2, life: 220, maxLife: 220 });
-                    if (this.dashTrail.length > 18) { this.dashTrail.shift(); }
-                    this.engineParticleTimer+=deltaTime;
-                    if(this.engineParticleTimer>this.engineParticleInterval/2){
-                        this.engineParticleTimer=0;
-                        const particleCount=3;
-                        for(let i=0;i<particleCount;i++){
-                            const angleOffset=(Math.random()-0.5)*0.3;
-                            const particleStartX = (this.x + this.width/2) - Math.cos(this.aimAngle) * (this.width * 0.5);
-                            const particleStartY = (this.y + this.height/2) - Math.sin(this.aimAngle) * (this.height * 0.5);
-                            const particleAngle=this.aimAngle+Math.PI+angleOffset;
-                            const speed=2.2+Math.random()*1.8;
-                            this.engineParticles.push({ x:particleStartX, y:particleStartY, vx:Math.cos(particleAngle)*speed, vy:Math.sin(particleAngle)*speed, size:Math.random()*2+1.5, life:Math.random()*200+150, maxLife:260, color:`hsla(${205+Math.random()*15},100%,70%,${0.45+Math.random()*0.35})`, opacity:1 });
-                        }
-                    }
-                    for(let i=this.engineParticles.length-1;i>=0;i--){ const p=this.engineParticles[i]; p.x+=p.vx; p.y+=p.vy; p.life-=deltaTime; p.opacity=p.life/p.maxLife; if(p.life<=0)this.engineParticles.splice(i,1); }
-                    if (elapsed >= this.dashDuration) { this.isDashing = false; }
-                    return;
-                }
-
-                let moveDx=0; let moveDy=0;
-
-                // Bot movement logic
-                if (this.actionState === 'MOVING_TO_REVIVE' && this.revivingTarget) {
-                    const dx = this.revivingTarget.x - this.x;
-                    const dy = this.revivingTarget.y - this.y;
-                    const dist = Math.hypot(dx, dy);
-                    if (dist > this.width) {
-                        moveDx = dx;
-                        moveDy = dy;
-                    } else {
-                        // Reached target
-                        this.actionState = 'REVIVING';
-                    }
-                } else if (this.actionState === 'FIGHTING' && this.targetEntity) {
-                     // Try to keep a safe distance
-                     const dx = this.targetEntity.x - this.x;
-                     const dy = this.targetEntity.y - this.y;
-                     const dist = Math.hypot(dx, dy);
-                     if (dist > 250) { // Move closer
-                         moveDx = dx; moveDy = dy;
-                     } else if (dist < 150) { // Move away
-                         moveDx = -dx; moveDy = -dy;
-                     } else {
-                         // Strafe
-                         moveDx = -dy; moveDy = dx;
-                     }
-                } else if (this.actionState === 'IDLE') {
-                    // Wander slightly towards player
-                    if (player1 && !player1.isDowned) {
-                        const dx = player1.x - this.x;
-                        const dy = player1.y - this.y;
-                        if (Math.hypot(dx,dy) > 150) {
-                             moveDx = dx; moveDy = dy;
-                        }
-                    }
-                }
-
-                // Look for powerups if not busy reviving
-                if (this.actionState !== 'MOVING_TO_REVIVE' && this.actionState !== 'REVIVING' && powerUps.length > 0) {
-                     let closestPU = null; let minDPU = Infinity;
-                     powerUps.forEach(pu => {
-                         const d = Math.hypot(pu.x - this.x, pu.y - this.y);
-                         if (d < minDPU) { minDPU = d; closestPU = pu; }
-                     });
-                     if (closestPU && minDPU < 200) {
-                         moveDx = closestPU.x - this.x;
-                         moveDy = closestPU.y - this.y;
-                     }
-                }
-
-                // Simple collision avoidance with walls
-                if (this.x < 50 && moveDx < 0) moveDx = 1;
-                if (this.x > CANVAS_WIDTH - 50 && moveDx > 0) moveDx = -1;
-                if (this.y < 50 && moveDy < 0) moveDy = 1;
-                if (this.y > CANVAS_HEIGHT - 50 && moveDy > 0) moveDy = -1;
-
-                const targetSpeed = (moveDx!==0||moveDy!==0)?this.speed:0; const acceleration=0.15; this.currentSpeed+=(targetSpeed-this.currentSpeed)*acceleration;
-                const effectiveSpeed = this.currentSpeed*(deltaTime/(1000/60));
-                const originalX = this.x;
-                const originalY = this.y;
-                if(moveDx!==0||moveDy!==0){
-                    const dist=Math.sqrt(moveDx*moveDx+moveDy*moveDy) || 1;
-                    const nDx=moveDx/dist;
-                    const nDy=moveDy/dist;
-                    let speedMult = this.isDowned ? 0.2 : 1.0;
-                    moveEntityWithObstacles(this, nDx*effectiveSpeed*speedMult, nDy*effectiveSpeed*speedMult);
-                }
-                const movedX = this.x - originalX;
-                const movedY = this.y - originalY;
-                if(Math.abs(movedX) > 0.001 || Math.abs(movedY) > 0.001){
-                    const magnitude = Math.hypot(movedX, movedY) || 1;
-                    this.lastMoveDx = movedX / magnitude;
-                    this.lastMoveDy = movedY / magnitude;
-                }
-                this.engineParticleTimer+=deltaTime;
-                if(this.engineParticleTimer>this.engineParticleInterval && this.currentSpeed > this.speed*0.2){
-                    this.engineParticleTimer=0; const particleCount=Math.floor(this.currentSpeed/this.speed*2)+1;
-                    for(let i=0;i<particleCount;i++){
-                        const angleOffset=(Math.random()-0.5)*0.5;
-                        const particleStartX = (this.x + this.width/2) - Math.cos(this.aimAngle) * (this.width * 0.4);
-                        const particleStartY = (this.y + this.height/2) - Math.sin(this.aimAngle) * (this.height * 0.4);
-                        const particleAngle=this.aimAngle+Math.PI+angleOffset;
-                        const speed=(Math.random()*1+1)*(this.currentSpeed/this.speed);
-                        this.engineParticles.push({ x:particleStartX, y:particleStartY, vx:Math.cos(particleAngle)*speed, vy:Math.sin(particleAngle)*speed, size:Math.random()*2+1, life:Math.random()*200+100, maxLife:300, color:`hsla(${20+Math.random()*30},100%,${60+Math.random()*20}%,${0.5+Math.random()*0.5})`, opacity:1 });
-                    }
-                }
-                for(let i=this.engineParticles.length-1;i>=0;i--){ const p=this.engineParticles[i]; p.x+=p.vx; p.y+=p.vy; p.life-=deltaTime; p.opacity=p.life/p.maxLife; if(p.life<=0)this.engineParticles.splice(i,1); }
-            }
-
-            shoot() {
-                if (this.isDowned) return;
-                const currentTime = Date.now();
-                const currentShootDelay = (Date.now() < this.rapidFireActiveUntil) ? this.shootDelayBase / 2 : this.shootDelayBase;
-                const actualShootDelay = AIMBOT_SHOOT_DELAY * 2; // Bots shoot a bit slower
-
-                let attemptShot = false;
-                if (this.actionState === 'FIGHTING' && this.targetEntity) {
-                     attemptShot = true;
-                }
-
-                if (attemptShot && (currentTime - this.lastShotTime > actualShootDelay)) {
-                    this.lastShotTime = currentTime;
-                    const numBullets = this.bulletCount;
-                    const spreadAngle = numBullets > 1 ? Math.PI / 24 : 0;
-
-                    const muzzleOffsetX = Math.cos(this.aimAngle) * (this.width * 0.5);
-                    const muzzleOffsetY = Math.sin(this.aimAngle) * (this.height * 0.5);
-                    createParticle( this.x+this.width/2 + muzzleOffsetX, this.y+this.height/2 + muzzleOffsetY, 5, `rgba(255,223,186,${0.5+Math.random()*0.5})`,[3,7],[2,4],[50,150],Math.PI/4 );
-                    createParticle( this.x+this.width/2 + muzzleOffsetX, this.y+this.height/2 + muzzleOffsetY, 3, 'rgba(255,255,255,0.7)',[2,4],[1,2],[40,90],Math.PI/6 );
-
-                    for (let i = 0; i < numBullets; i++) {
-                        const angleOffset = (i - (numBullets - 1) / 2) * spreadAngle;
-                        const currentAngle = this.aimAngle + angleOffset;
-                        const cosA = Math.cos(currentAngle); const sinA = Math.sin(currentAngle);
-                        const startX = this.x + this.width/2 + cosA * (this.width * 0.5);
-                        const startY = this.y + this.height/2 + sinA * (this.height * 0.5);
-                        this.projectiles.push(new Projectile( startX, startY, cosA*this.type.projectileSpeed, sinA*this.type.projectileSpeed, this.type.projectileColor ));
-                    }
-                }
-            }
-
-            botLogic(deltaTime) {
-                if (Date.now() - this.lastLogicUpdate < 200) return; // Update logic 5 times a second
-                this.lastLogicUpdate = Date.now();
-
-                // 1. Check if anyone needs reviving
-                let needsRevival = null;
-                for (const e of entities) {
-                    if (e !== this && e.isDowned && !e.isBeingRevived) {
-                         // Find closest downed entity
-                         if (!needsRevival || Math.hypot(e.x-this.x, e.y-this.y) < Math.hypot(needsRevival.x-this.x, needsRevival.y-this.y)) {
-                              needsRevival = e;
-                         }
-                    }
-                }
-
-                // 2. Check if under attack / nearby enemies
-                let closestEnemy = null;
-                let minEnemDist = Infinity;
-                gameTargets.forEach(t => {
-                    const d = Math.hypot(t.x - this.x, t.y - this.y);
-                    if (d < minEnemDist) { minEnemDist = d; closestEnemy = t; }
-                });
-
-                // Check for incoming projectiles
-                let incomingDanger = false;
-                enemyProjectiles.forEach(ep => {
-                     const d = Math.hypot(ep.x - this.x, ep.y - this.y);
-                     if (d < 150) incomingDanger = true;
-                });
-
-                // Logic State Machine
-                if (needsRevival) {
-                    if (incomingDanger || (closestEnemy && minEnemDist < 100)) {
-                         // Under heavy fire, fight back before reviving
-                         this.actionState = 'FIGHTING';
-                         this.targetEntity = closestEnemy;
-                         if (this.revivingTarget) {
-                             this.revivingTarget.isBeingRevived = false;
-                             this.revivingTarget.reviveProgress = 0;
-                             this.revivingTarget = null;
-                         }
-                    } else {
-                        // Coast is relatively clear, go revive
-                        this.targetEntity = null;
-                        if (this.revivingTarget !== needsRevival && this.revivingTarget) {
-                            this.revivingTarget.isBeingRevived = false;
-                            this.revivingTarget.reviveProgress = 0;
-                        }
-                        this.revivingTarget = needsRevival;
-
-                        const distToDowned = Math.hypot(this.revivingTarget.x - this.x, this.revivingTarget.y - this.y);
-                        if (distToDowned <= this.width) {
-                            this.actionState = 'REVIVING';
-                            this.revivingTarget.isBeingRevived = true;
-                        } else {
-                            this.actionState = 'MOVING_TO_REVIVE';
-                            this.revivingTarget.isBeingRevived = false; // Only true when actually standing on them
-                        }
-                    }
-                } else {
-                    // No one needs reviving
-                    if (this.revivingTarget) {
-                         this.revivingTarget.isBeingRevived = false;
-                         this.revivingTarget.reviveProgress = 0;
-                         this.revivingTarget = null;
-                    }
-                    if (closestEnemy && minEnemDist < 600) {
-                        this.actionState = 'FIGHTING';
-                        this.targetEntity = closestEnemy;
-
-                        // Use abilities if appropriate
-                        if (this.beamReady) this.fireBeam();
-                        if (this.smashReady && minEnemDist < 200) this.fireSmash();
-                        if (incomingDanger && minEnemDist < 150) this.tryDash();
-
-                    } else {
-                        this.actionState = 'IDLE';
-                        this.targetEntity = null;
-                    }
-                }
-            }
-
-            update(deltaTime) {
-                if (this.health <= 0 && !this.isDowned) { return; }
-
-                if (this.isDowned) {
-                    this.move(deltaTime); // Very slow drift
-                    return;
-                }
-
-                if (this.isInvulnerable && Date.now() >= this.invulnerableUntil) { this.isInvulnerable = false; }
-                if (Date.now() >= this.rapidFireActiveUntil && this.shootDelayBase !== this.type.baseShootDelay) {
-                    this.shootDelayBase = this.type.baseShootDelay;
-                }
-                if (Date.now() >= this.speedBoostActiveUntil && this.speed !== this.type.baseSpeed) {
-                    this.speed = this.type.baseSpeed;
-                }
-
-                this.botLogic(deltaTime);
-
-                if (this.actionState === 'REVIVING' && this.revivingTarget) {
-                     this.revivingTarget.reviveProgress += deltaTime;
-                     if (this.revivingTarget.reviveProgress >= REVIVE_TIME) {
-                          // Revive successful
-                          this.revivingTarget.isDowned = false;
-                          this.revivingTarget.health = this.revivingTarget.initialHealth * 0.5;
-                          this.revivingTarget.isInvulnerable = true;
-                          this.revivingTarget.invulnerableUntil = Date.now() + 3000;
-                          this.revivingTarget.isBeingRevived = false;
-                          this.revivingTarget.reviveProgress = 0;
-
-                          if (this.revivingTarget.isPlayer) {
-                              document.body.classList.remove('player-downed');
-                              downedOverlay.classList.remove('active');
-                              setTimeout(() => downedOverlay.classList.add('hidden'), 300);
-                              showTemporaryPopup("You were revived by a bot!");
-                          }
-
-                          this.revivingTarget = null;
-                          this.actionState = 'IDLE';
-                     }
-                } else if (this.revivingTarget && this.revivingTarget.reviveProgress > 0) {
-                     // Decay progress slightly if interrupted but close
-                     this.revivingTarget.reviveProgress -= deltaTime * 0.5;
-                     if (this.revivingTarget.reviveProgress < 0) this.revivingTarget.reviveProgress = 0;
-                }
-
-                this.updateAimDirection(deltaTime); this.move(deltaTime); this.shoot();
-
-                if (!this.beamReady && !this.isFiringBeam) { this.beamCharge += deltaTime; if (this.beamCharge >= this.beamChargeMax) { this.beamCharge = this.beamChargeMax; this.beamReady = true;} }
-                if (!this.smashReady && !this.isSmashing) { this.smashCharge += deltaTime; if (this.smashCharge >= this.smashChargeMax) { this.smashCharge = this.smashChargeMax; this.smashReady = true;}}
-
-                if (this.isFiringBeam && (Date.now() - this.beamActiveStartTime >= this.beamActiveDuration)) { this.isFiringBeam = false; }
-                if (this.isSmashing) {
-                    this.smashRadius += this.smashExpansionSpeed * (deltaTime/(1000/60));
-                    for (let i = gameTargets.length-1; i >= 0; i--) { const target = gameTargets[i]; const distSq = Math.pow(target.x+target.width/2-(this.x+this.width/2),2)+Math.pow(target.y+target.height/2-(this.y+this.height/2),2); if (distSq <= Math.pow(this.smashRadius,2)) { target.takeDamage(1000); if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,10,target.color,[3,8],[2,5],[200,500]); gameTargets.splice(i,1); }}}
-                    if (this.smashRadius >= this.smashMaxRadius) { this.isSmashing = false; this.smashRadius = 0; }
-                }
-                for (let i = this.projectiles.length - 1; i >= 0; i--) {
-                    const projectile = this.projectiles[i];
-                    projectile.update(deltaTime);
-                    if (projectile.shouldRemove) {
-                        this.projectiles.splice(i, 1);
-                    }
-                }
-
-                if (!this.isInvulnerable && !(Date.now() < this.shieldActiveUntil) && !this.isDivineProtectionActive && this.shieldOpacity > 0) {
-                    this.shieldOpacity -= 0.02 * (deltaTime / 16.67); if (this.shieldOpacity < 0) this.shieldOpacity = 0;
-                }
-            }
-        }
-
-        class FoxPlayer {
+                class FoxPlayer {
             constructor(x, y, foxTypeName, controls) {
                 this.type = FOX_TYPES[foxTypeName]; this.x = x; this.y = y; this.width = PLAYER_WIDTH; this.height = PLAYER_HEIGHT;
                 this.color = this.type.color;
@@ -3066,6 +2730,342 @@ body.player-downed {
             }
         }
 
+class Bot extends FoxPlayer {
+            constructor(x, y, foxTypeName) {
+                super(x, y, foxTypeName, { up:'', down:'', left:'', right:'', shoot:'', beam:'', smash:'' }); // Dummy controls
+                this.isPlayer = false;
+                this.targetEntity = null; // Either an enemy to shoot or an entity to revive
+                this.revivingTarget = null;
+                this.actionState = 'IDLE'; // IDLE, FIGHTING, MOVING_TO_REVIVE, REVIVING, EVADING
+                this.color = `hsl(${Math.random()*360}, 80%, 60%)`; // Distinguish bots visually slightly
+                this.lastLogicUpdate = 0;
+            }
+
+            updateAimDirection(deltaTime) {
+                if (this.isDowned) return;
+
+                // Bot aiming logic
+                if (this.targetEntity && !this.targetEntity.isDowned && this.actionState === 'FIGHTING') {
+                    const dx = this.targetEntity.x + this.targetEntity.width/2 - (this.x + this.width/2);
+                    const dy = this.targetEntity.y + this.targetEntity.height/2 - (this.y + this.height/2);
+                    this.aimAngle = Math.atan2(dy, dx);
+                } else if (this.actionState === 'MOVING_TO_REVIVE' || this.actionState === 'REVIVING') {
+                     // Look at who we are reviving
+                     if (this.revivingTarget) {
+                         const dx = this.revivingTarget.x + this.revivingTarget.width/2 - (this.x + this.width/2);
+                         const dy = this.revivingTarget.y + this.revivingTarget.height/2 - (this.y + this.height/2);
+                         this.aimAngle = Math.atan2(dy, dx);
+                     }
+                }
+
+                this.keyboardAimVector.x = Math.cos(this.aimAngle);
+                this.keyboardAimVector.y = Math.sin(this.aimAngle);
+            }
+
+            move(deltaTime) {
+                if(this.isDashing && !this.isDowned){
+                    const elapsed = Date.now() - this.dashStartTime;
+                    const progress = Math.min(1, elapsed / this.dashDuration);
+                    const dashStep = this.dashSpeed * (1 - 0.4 * progress) * (deltaTime/(1000/60));
+                    this.x += this.dashDirection.x * dashStep;
+                    this.y += this.dashDirection.y * dashStep;
+                    this.lastMoveDx = this.dashDirection.x;
+                    this.lastMoveDy = this.dashDirection.y;
+                    this.x=Math.max(0,Math.min(this.x,CANVAS_WIDTH-this.width)); this.y=Math.max(0,Math.min(this.y,CANVAS_HEIGHT-this.height));
+                    this.dashTrail.push({ x: this.x + this.width/2, y: this.y + this.height/2, life: 220, maxLife: 220 });
+                    if (this.dashTrail.length > 18) { this.dashTrail.shift(); }
+                    this.engineParticleTimer+=deltaTime;
+                    if(this.engineParticleTimer>this.engineParticleInterval/2){
+                        this.engineParticleTimer=0;
+                        const particleCount=3;
+                        for(let i=0;i<particleCount;i++){
+                            const angleOffset=(Math.random()-0.5)*0.3;
+                            const particleStartX = (this.x + this.width/2) - Math.cos(this.aimAngle) * (this.width * 0.5);
+                            const particleStartY = (this.y + this.height/2) - Math.sin(this.aimAngle) * (this.height * 0.5);
+                            const particleAngle=this.aimAngle+Math.PI+angleOffset;
+                            const speed=2.2+Math.random()*1.8;
+                            this.engineParticles.push({ x:particleStartX, y:particleStartY, vx:Math.cos(particleAngle)*speed, vy:Math.sin(particleAngle)*speed, size:Math.random()*2+1.5, life:Math.random()*200+150, maxLife:260, color:`hsla(${205+Math.random()*15},100%,70%,${0.45+Math.random()*0.35})`, opacity:1 });
+                        }
+                    }
+                    for(let i=this.engineParticles.length-1;i>=0;i--){ const p=this.engineParticles[i]; p.x+=p.vx; p.y+=p.vy; p.life-=deltaTime; p.opacity=p.life/p.maxLife; if(p.life<=0)this.engineParticles.splice(i,1); }
+                    if (elapsed >= this.dashDuration) { this.isDashing = false; }
+                    return;
+                }
+
+                let moveDx=0; let moveDy=0;
+
+                // Bot movement logic
+                if (this.actionState === 'MOVING_TO_REVIVE' && this.revivingTarget) {
+                    const dx = this.revivingTarget.x - this.x;
+                    const dy = this.revivingTarget.y - this.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist > this.width) {
+                        moveDx = dx;
+                        moveDy = dy;
+                    } else {
+                        // Reached target
+                        this.actionState = 'REVIVING';
+                    }
+                } else if (this.actionState === 'FIGHTING' && this.targetEntity) {
+                     // Try to keep a safe distance
+                     const dx = this.targetEntity.x - this.x;
+                     const dy = this.targetEntity.y - this.y;
+                     const dist = Math.hypot(dx, dy);
+                     if (dist > 250) { // Move closer
+                         moveDx = dx; moveDy = dy;
+                     } else if (dist < 150) { // Move away
+                         moveDx = -dx; moveDy = -dy;
+                     } else {
+                         // Strafe
+                         moveDx = -dy; moveDy = dx;
+                     }
+                } else if (this.actionState === 'IDLE') {
+                    // Wander slightly towards player
+                    if (player1 && !player1.isDowned) {
+                        const dx = player1.x - this.x;
+                        const dy = player1.y - this.y;
+                        if (Math.hypot(dx,dy) > 150) {
+                             moveDx = dx; moveDy = dy;
+                        }
+                    }
+                }
+
+                // Look for powerups if not busy reviving
+                if (this.actionState !== 'MOVING_TO_REVIVE' && this.actionState !== 'REVIVING' && powerUps.length > 0) {
+                     let closestPU = null; let minDPU = Infinity;
+                     powerUps.forEach(pu => {
+                         const d = Math.hypot(pu.x - this.x, pu.y - this.y);
+                         if (d < minDPU) { minDPU = d; closestPU = pu; }
+                     });
+                     if (closestPU && minDPU < 200) {
+                         moveDx = closestPU.x - this.x;
+                         moveDy = closestPU.y - this.y;
+                     }
+                }
+
+                // Simple collision avoidance with walls
+                if (this.x < 50 && moveDx < 0) moveDx = 1;
+                if (this.x > CANVAS_WIDTH - 50 && moveDx > 0) moveDx = -1;
+                if (this.y < 50 && moveDy < 0) moveDy = 1;
+                if (this.y > CANVAS_HEIGHT - 50 && moveDy > 0) moveDy = -1;
+
+                const targetSpeed = (moveDx!==0||moveDy!==0)?this.speed:0; const acceleration=0.15; this.currentSpeed+=(targetSpeed-this.currentSpeed)*acceleration;
+                const effectiveSpeed = this.currentSpeed*(deltaTime/(1000/60));
+                const originalX = this.x;
+                const originalY = this.y;
+                if(moveDx!==0||moveDy!==0){
+                    const dist=Math.sqrt(moveDx*moveDx+moveDy*moveDy) || 1;
+                    const nDx=moveDx/dist;
+                    const nDy=moveDy/dist;
+                    let speedMult = this.isDowned ? 0.2 : 1.0;
+                    moveEntityWithObstacles(this, nDx*effectiveSpeed*speedMult, nDy*effectiveSpeed*speedMult);
+                }
+                const movedX = this.x - originalX;
+                const movedY = this.y - originalY;
+                if(Math.abs(movedX) > 0.001 || Math.abs(movedY) > 0.001){
+                    const magnitude = Math.hypot(movedX, movedY) || 1;
+                    this.lastMoveDx = movedX / magnitude;
+                    this.lastMoveDy = movedY / magnitude;
+                }
+                this.engineParticleTimer+=deltaTime;
+                if(this.engineParticleTimer>this.engineParticleInterval && this.currentSpeed > this.speed*0.2){
+                    this.engineParticleTimer=0; const particleCount=Math.floor(this.currentSpeed/this.speed*2)+1;
+                    for(let i=0;i<particleCount;i++){
+                        const angleOffset=(Math.random()-0.5)*0.5;
+                        const particleStartX = (this.x + this.width/2) - Math.cos(this.aimAngle) * (this.width * 0.4);
+                        const particleStartY = (this.y + this.height/2) - Math.sin(this.aimAngle) * (this.height * 0.4);
+                        const particleAngle=this.aimAngle+Math.PI+angleOffset;
+                        const speed=(Math.random()*1+1)*(this.currentSpeed/this.speed);
+                        this.engineParticles.push({ x:particleStartX, y:particleStartY, vx:Math.cos(particleAngle)*speed, vy:Math.sin(particleAngle)*speed, size:Math.random()*2+1, life:Math.random()*200+100, maxLife:300, color:`hsla(${20+Math.random()*30},100%,${60+Math.random()*20}%,${0.5+Math.random()*0.5})`, opacity:1 });
+                    }
+                }
+                for(let i=this.engineParticles.length-1;i>=0;i--){ const p=this.engineParticles[i]; p.x+=p.vx; p.y+=p.vy; p.life-=deltaTime; p.opacity=p.life/p.maxLife; if(p.life<=0)this.engineParticles.splice(i,1); }
+            }
+
+            shoot() {
+                if (this.isDowned) return;
+                const currentTime = Date.now();
+                const currentShootDelay = (Date.now() < this.rapidFireActiveUntil) ? this.shootDelayBase / 2 : this.shootDelayBase;
+                const actualShootDelay = AIMBOT_SHOOT_DELAY * 2; // Bots shoot a bit slower
+
+                let attemptShot = false;
+                if (this.actionState === 'FIGHTING' && this.targetEntity) {
+                     attemptShot = true;
+                }
+
+                if (attemptShot && (currentTime - this.lastShotTime > actualShootDelay)) {
+                    this.lastShotTime = currentTime;
+                    const numBullets = this.bulletCount;
+                    const spreadAngle = numBullets > 1 ? Math.PI / 24 : 0;
+
+                    const muzzleOffsetX = Math.cos(this.aimAngle) * (this.width * 0.5);
+                    const muzzleOffsetY = Math.sin(this.aimAngle) * (this.height * 0.5);
+                    createParticle( this.x+this.width/2 + muzzleOffsetX, this.y+this.height/2 + muzzleOffsetY, 5, `rgba(255,223,186,${0.5+Math.random()*0.5})`,[3,7],[2,4],[50,150],Math.PI/4 );
+                    createParticle( this.x+this.width/2 + muzzleOffsetX, this.y+this.height/2 + muzzleOffsetY, 3, 'rgba(255,255,255,0.7)',[2,4],[1,2],[40,90],Math.PI/6 );
+
+                    for (let i = 0; i < numBullets; i++) {
+                        const angleOffset = (i - (numBullets - 1) / 2) * spreadAngle;
+                        const currentAngle = this.aimAngle + angleOffset;
+                        const cosA = Math.cos(currentAngle); const sinA = Math.sin(currentAngle);
+                        const startX = this.x + this.width/2 + cosA * (this.width * 0.5);
+                        const startY = this.y + this.height/2 + sinA * (this.height * 0.5);
+                        this.projectiles.push(new Projectile( startX, startY, cosA*this.type.projectileSpeed, sinA*this.type.projectileSpeed, this.type.projectileColor ));
+                    }
+                }
+            }
+
+            botLogic(deltaTime) {
+                if (Date.now() - this.lastLogicUpdate < 200) return; // Update logic 5 times a second
+                this.lastLogicUpdate = Date.now();
+
+                // 1. Check if anyone needs reviving
+                let needsRevival = null;
+                for (const e of entities) {
+                    if (e !== this && e.isDowned && !e.isBeingRevived) {
+                         // Find closest downed entity
+                         if (!needsRevival || Math.hypot(e.x-this.x, e.y-this.y) < Math.hypot(needsRevival.x-this.x, needsRevival.y-this.y)) {
+                              needsRevival = e;
+                         }
+                    }
+                }
+
+                // 2. Check if under attack / nearby enemies
+                let closestEnemy = null;
+                let minEnemDist = Infinity;
+                gameTargets.forEach(t => {
+                    const d = Math.hypot(t.x - this.x, t.y - this.y);
+                    if (d < minEnemDist) { minEnemDist = d; closestEnemy = t; }
+                });
+
+                // Check for incoming projectiles
+                let incomingDanger = false;
+                enemyProjectiles.forEach(ep => {
+                     const d = Math.hypot(ep.x - this.x, ep.y - this.y);
+                     if (d < 150) incomingDanger = true;
+                });
+
+                // Logic State Machine
+                if (needsRevival) {
+                    if (incomingDanger || (closestEnemy && minEnemDist < 100)) {
+                         // Under heavy fire, fight back before reviving
+                         this.actionState = 'FIGHTING';
+                         this.targetEntity = closestEnemy;
+                         if (this.revivingTarget) {
+                             this.revivingTarget.isBeingRevived = false;
+                             this.revivingTarget.reviveProgress = 0;
+                             this.revivingTarget = null;
+                         }
+                    } else {
+                        // Coast is relatively clear, go revive
+                        this.targetEntity = null;
+                        if (this.revivingTarget !== needsRevival && this.revivingTarget) {
+                            this.revivingTarget.isBeingRevived = false;
+                            this.revivingTarget.reviveProgress = 0;
+                        }
+                        this.revivingTarget = needsRevival;
+
+                        const distToDowned = Math.hypot(this.revivingTarget.x - this.x, this.revivingTarget.y - this.y);
+                        if (distToDowned <= this.width) {
+                            this.actionState = 'REVIVING';
+                            this.revivingTarget.isBeingRevived = true;
+                        } else {
+                            this.actionState = 'MOVING_TO_REVIVE';
+                            this.revivingTarget.isBeingRevived = false; // Only true when actually standing on them
+                        }
+                    }
+                } else {
+                    // No one needs reviving
+                    if (this.revivingTarget) {
+                         this.revivingTarget.isBeingRevived = false;
+                         this.revivingTarget.reviveProgress = 0;
+                         this.revivingTarget = null;
+                    }
+                    if (closestEnemy && minEnemDist < 600) {
+                        this.actionState = 'FIGHTING';
+                        this.targetEntity = closestEnemy;
+
+                        // Use abilities if appropriate
+                        if (this.beamReady) this.fireBeam();
+                        if (this.smashReady && minEnemDist < 200) this.fireSmash();
+                        if (incomingDanger && minEnemDist < 150) this.tryDash();
+
+                    } else {
+                        this.actionState = 'IDLE';
+                        this.targetEntity = null;
+                    }
+                }
+            }
+
+            update(deltaTime) {
+                if (this.health <= 0 && !this.isDowned) { return; }
+
+                if (this.isDowned) {
+                    this.move(deltaTime); // Very slow drift
+                    return;
+                }
+
+                if (this.isInvulnerable && Date.now() >= this.invulnerableUntil) { this.isInvulnerable = false; }
+                if (Date.now() >= this.rapidFireActiveUntil && this.shootDelayBase !== this.type.baseShootDelay) {
+                    this.shootDelayBase = this.type.baseShootDelay;
+                }
+                if (Date.now() >= this.speedBoostActiveUntil && this.speed !== this.type.baseSpeed) {
+                    this.speed = this.type.baseSpeed;
+                }
+
+                this.botLogic(deltaTime);
+
+                if (this.actionState === 'REVIVING' && this.revivingTarget) {
+                     this.revivingTarget.reviveProgress += deltaTime;
+                     if (this.revivingTarget.reviveProgress >= REVIVE_TIME) {
+                          // Revive successful
+                          this.revivingTarget.isDowned = false;
+                          this.revivingTarget.health = this.revivingTarget.initialHealth * 0.5;
+                          this.revivingTarget.isInvulnerable = true;
+                          this.revivingTarget.invulnerableUntil = Date.now() + 3000;
+                          this.revivingTarget.isBeingRevived = false;
+                          this.revivingTarget.reviveProgress = 0;
+
+                          if (this.revivingTarget.isPlayer) {
+                              document.body.classList.remove('player-downed');
+                              downedOverlay.classList.remove('active');
+                              setTimeout(() => downedOverlay.classList.add('hidden'), 300);
+                              showTemporaryPopup("You were revived by a bot!");
+                          }
+
+                          this.revivingTarget = null;
+                          this.actionState = 'IDLE';
+                     }
+                } else if (this.revivingTarget && this.revivingTarget.reviveProgress > 0) {
+                     // Decay progress slightly if interrupted but close
+                     this.revivingTarget.reviveProgress -= deltaTime * 0.5;
+                     if (this.revivingTarget.reviveProgress < 0) this.revivingTarget.reviveProgress = 0;
+                }
+
+                this.updateAimDirection(deltaTime); this.move(deltaTime); this.shoot();
+
+                if (!this.beamReady && !this.isFiringBeam) { this.beamCharge += deltaTime; if (this.beamCharge >= this.beamChargeMax) { this.beamCharge = this.beamChargeMax; this.beamReady = true;} }
+                if (!this.smashReady && !this.isSmashing) { this.smashCharge += deltaTime; if (this.smashCharge >= this.smashChargeMax) { this.smashCharge = this.smashChargeMax; this.smashReady = true;}}
+
+                if (this.isFiringBeam && (Date.now() - this.beamActiveStartTime >= this.beamActiveDuration)) { this.isFiringBeam = false; }
+                if (this.isSmashing) {
+                    this.smashRadius += this.smashExpansionSpeed * (deltaTime/(1000/60));
+                    for (let i = gameTargets.length-1; i >= 0; i--) { const target = gameTargets[i]; const distSq = Math.pow(target.x+target.width/2-(this.x+this.width/2),2)+Math.pow(target.y+target.height/2-(this.y+this.height/2),2); if (distSq <= Math.pow(this.smashRadius,2)) { target.takeDamage(1000); if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,10,target.color,[3,8],[2,5],[200,500]); gameTargets.splice(i,1); }}}
+                    if (this.smashRadius >= this.smashMaxRadius) { this.isSmashing = false; this.smashRadius = 0; }
+                }
+                for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                    const projectile = this.projectiles[i];
+                    projectile.update(deltaTime);
+                    if (projectile.shouldRemove) {
+                        this.projectiles.splice(i, 1);
+                    }
+                }
+
+                if (!this.isInvulnerable && !(Date.now() < this.shieldActiveUntil) && !this.isDivineProtectionActive && this.shieldOpacity > 0) {
+                    this.shieldOpacity -= 0.02 * (deltaTime / 16.67); if (this.shieldOpacity < 0) this.shieldOpacity = 0;
+                }
+            }
+        }
+
         class Projectile{
             constructor(x,y,sX,sY,c){
                 this.x=x-PROJECTILE_WIDTH/2;this.y=y-PROJECTILE_HEIGHT/2; this.width=PROJECTILE_WIDTH;this.height=PROJECTILE_HEIGHT;
@@ -3097,7 +3097,23 @@ body.player-downed {
 
         let lastFrameTime = 0;
 
+        
+        function generateObstacles() {
+            let obs = [];
+            // Assuming 5 random obstacles
+            for(let i=0; i<5; i++) {
+                obs.push({
+                    x: Math.random() * (CANVAS_WIDTH - 100),
+                    y: Math.random() * (CANVAS_HEIGHT - 100),
+                    width: 50 + Math.random() * 100,
+                    height: 50 + Math.random() * 100
+                });
+            }
+            return obs;
+        }
+
         function spawnTargets(count, isInitialSpawn = true) {
+
             const enemyTypes = ['purple','orange','green','blue']; let availableTypes = [...enemyTypes];
             if (gameMode === 'normal') {
                 if(currentStage===1&&currentWave===1){availableTypes=['blue'];}
@@ -3141,7 +3157,19 @@ body.player-downed {
             if (gameMode === 'hell') { setNextHellSpawnTime(); } updateUI();
         };
 
+        
+        function ensureEntityOutsideObstacles(entity) {
+            // Check collisions and bump them out
+            for (let obs of obstacles) {
+                if (entity.x < obs.x + obs.width && entity.x + (entity.width||entity.size) > obs.x &&
+                    entity.y < obs.y + obs.height && entity.y + (entity.height||entity.size) > obs.y) {
+                    entity.x = obs.x - (entity.width||entity.size) - 5;
+                }
+            }
+        }
+        
         function setNextPowerupSpawnTime() {
+
             nextPowerUpSpawnTime = Date.now() + Math.random() * (POWERUP_SPAWN_INTERVAL_MAX - POWERUP_SPAWN_INTERVAL_MIN) + POWERUP_SPAWN_INTERVAL_MIN;
         }
         function setNextGreenHealthPackSpawnTime() {
@@ -3180,13 +3208,75 @@ body.player-downed {
             }
         }
 
+        
+        function moveEntityWithObstacles(entity, dx, dy) {
+            entity.x += dx;
+            entity.y += dy;
+            
+            // Keep inside bounds
+            if (entity.x < 0) entity.x = 0;
+            if (entity.x + (entity.width || entity.size) > CANVAS_WIDTH) entity.x = CANVAS_WIDTH - (entity.width || entity.size);
+            if (entity.y < 0) entity.y = 0;
+            if (entity.y + (entity.height || entity.size) > CANVAS_HEIGHT) entity.y = CANVAS_HEIGHT - (entity.height || entity.size);
+        }
+
         function checkCollisions() {
-            if (!player1 || player1.isSmashing) { return; }
-            player1.projectiles.forEach((p, pIndex) => { for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; if (p.x < target.x+target.width && p.x+p.width > target.x && p.y < target.y+target.height && p.y+p.height > target.y) { target.takeDamage(10); player1.projectiles.splice(pIndex,1); playerScore+=SCORE_PER_HIT; if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,15 + Math.floor(target.size/2),target.color,[3,target.size/2.5],[1.5,5],[350,800]); gameTargets.splice(tIndex,1); if(player1.isSmashing) { /* No screen shake if smash killed it */ } else { screenShake(5, 150); } } break; }}});
-            if (player1.isFiringBeam) { const beamAngle = player1.beamTargetAngle; const beamLength = CANVAS_WIDTH*1.5; for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; const tCX = target.x+target.width/2; const tCY = target.y+target.height/2; const pCX = player1.x+player1.width/2; const pCY = player1.y+player1.height/2; const dx = tCX-pCX; const dy = tCY-pCY; const distToP = Math.sqrt(dx*dx+dy*dy); if (distToP < beamLength) { const angleToT = Math.atan2(dy,dx); const angleDiff = Math.abs(normalizeAngle(beamAngle-angleToT)); if (angleDiff < Math.atan2(BEAM_THICKNESS/2,distToP) || distToP < target.size*0.8 ) { target.takeDamage(player1.beamDamagePerFrame*(lastFrameTime-(player1.beamFrameTime||lastFrameTime))/(1000/60)); playerScore+=SCORE_PER_BEAM_FRAME; if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,15 + Math.floor(target.size/2),target.color,[3,target.size/2.5],[1.5,5],[350,800]); gameTargets.splice(tIndex,1); screenShake(3,100); }}}} player1.beamFrameTime = lastFrameTime; } else { player1.beamFrameTime = null; }
-            for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { const target = gameTargets[tIndex]; if (player1.x < target.x+target.width && player1.x+player1.width > target.x && player1.y < target.y+target.height && player1.y+player1.height > target.y) { player1.takeDamage(TARGET_CONTACT_DAMAGE); target.takeDamage(50); if (target.health <= 0) { createParticle(target.x+target.width/2,target.y+target.height/2,10,target.color,[3,8],[2,5],[200,500]); gameTargets.splice(tIndex,1); screenShake(5,150); } else { const dx = target.x-player1.x; const dy = target.y-player1.y; const dist = Math.sqrt(dx*dx+dy*dy)||1; moveEntityWithObstacles(target, (dx/dist)*10, (dy/dist)*10); }}}
-            for (let epIndex = enemyProjectiles.length-1; epIndex >= 0; epIndex--) { const ep = enemyProjectiles[epIndex]; if (player1.health > 0 && ep.x < player1.x+player1.width && ep.x+ep.width > player1.x && ep.y < player1.y+player1.height && ep.y+ep.height > player1.y) { player1.takeDamage(ep.damage); enemyProjectiles.splice(epIndex,1); }}
-            for (let puIndex = powerUps.length-1; puIndex >= 0; puIndex--) { const powerUp = powerUps[puIndex]; if (player1.x < powerUp.x+powerUp.size && player1.x+player1.width > powerUp.x && player1.y < powerUp.y+powerUp.size && player1.y+player1.height > powerUp.y) { player1.collectPowerUp(powerUp.type); powerUps.splice(puIndex,1); createParticle(powerUp.x + powerUp.size/2, powerUp.y + powerUp.size/2, 20, powerUp.pulseColor, [3,8], [2,5], [200,500]);}}
+
+            entities.forEach(entity => {
+                if (entity.isSmashing) return;
+                entity.projectiles.forEach((p, pIndex) => { 
+                    for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { 
+                        const target = gameTargets[tIndex]; 
+                        if (p.x < target.x+target.width && p.x+p.width > target.x && p.y < target.y+target.height && p.y+p.height > target.y) { 
+                            target.takeDamage(10); 
+                            entity.projectiles.splice(pIndex,1); 
+                            if (entity === player1) playerScore+=SCORE_PER_HIT; 
+                            if (target.health <= 0) { 
+                                createParticle(target.x+target.width/2,target.y+target.height/2,15 + Math.floor(target.size/2),target.color,[3,target.size/2.5],[1.5,5],[350,800]); 
+                                gameTargets.splice(tIndex,1); 
+                                if(!entity.isSmashing) screenShake(5, 150); 
+                            } 
+                            break; 
+                        }
+                    }
+                });
+                
+                for (let tIndex = gameTargets.length-1; tIndex >= 0; tIndex--) { 
+                    const target = gameTargets[tIndex]; 
+                    if (entity.x < target.x+target.width && entity.x+(entity.width||entity.size) > target.x && entity.y < target.y+target.height && entity.y+(entity.height||entity.size) > target.y) { 
+                        entity.takeDamage(TARGET_CONTACT_DAMAGE); 
+                        target.takeDamage(50); 
+                        if (target.health <= 0) { 
+                            createParticle(target.x+target.width/2,target.y+target.height/2,10,target.color,[3,8],[2,5],[200,500]); 
+                            gameTargets.splice(tIndex,1); 
+                            screenShake(5,150); 
+                        } else { 
+                            const dx = target.x-entity.x; 
+                            const dy = target.y-entity.y; 
+                            const dist = Math.sqrt(dx*dx+dy*dy)||1; 
+                            moveEntityWithObstacles(target, (dx/dist)*10, (dy/dist)*10); 
+                        }
+                    }
+                }
+                
+                for (let epIndex = enemyProjectiles.length-1; epIndex >= 0; epIndex--) { 
+                    const ep = enemyProjectiles[epIndex]; 
+                    if (entity.health > 0 && ep.x < entity.x+(entity.width||entity.size) && ep.x+ep.width > entity.x && ep.y < entity.y+(entity.height||entity.size) && ep.y+ep.height > entity.y) { 
+                        entity.takeDamage(ep.damage); 
+                        enemyProjectiles.splice(epIndex,1); 
+                    }
+                }
+                
+                for (let puIndex = powerUps.length-1; puIndex >= 0; puIndex--) { 
+                    const powerUp = powerUps[puIndex]; 
+                    if (entity.x < powerUp.x+powerUp.size && entity.x+(entity.width||entity.size) > powerUp.x && entity.y < powerUp.y+powerUp.size && entity.y+(entity.height||entity.size) > powerUp.y) { 
+                        entity.collectPowerUp(powerUp.type); 
+                        powerUps.splice(puIndex,1); 
+                        createParticle(powerUp.x + powerUp.size/2, powerUp.y + powerUp.size/2, 20, powerUp.pulseColor, [3,8], [2,5], [200,500]);
+                    }
+                }
+            });
+
             if (!player1.isSmashing && gameTargets.length === 0 && gameRunning && player1.health > 0) { if (gameMode==='normal' && currentStage===COMPLETION_STAGE && currentWave===MAX_WAVES_PER_LEVEL) { showGameCompletionPopup(); } else { currentWave++; if (gameMode==='normal' && currentWave > MAX_WAVES_PER_LEVEL) { currentWave=1; currentStage++; targetsPerWaveBase=Math.min(10,targetsPerWaveBase+ (gameMode === 'hell' ? 2.2 : 1.2)); showTemporaryPopup(`Stage ${currentStage-1} Cleared! Onto Stage ${currentStage}!`); } else if (gameMode==='hell' && currentWave > MAX_WAVES_PER_LEVEL) { currentWave=1; currentStage++; targetsPerWaveBase=Math.min(20,targetsPerWaveBase+2.5); showTemporaryPopup(`Hell Stage ${currentStage-1} Cleared! Prepare for more!`); } else { showTemporaryPopup(`Wave ${currentWave-1} Cleared!`); } initializeStage(currentStage,currentWave); }}
             if (player1.health <= 0 && gameRunning) { announceOutcome("Game Over!", false); } updateUI();
         };
@@ -3273,7 +3363,16 @@ body.player-downed {
             l.forEach(e => { const li = document.createElement('li'); li.textContent = `${e.name}: ${e.score} (${e.stage} - ${e.date})`; leaderboardList.appendChild(li); });
         };
 
+        
+        function drawObstacles() {
+            ctx.fillStyle = "rgba(100, 100, 100, 0.5)";
+            for (let obs of obstacles) {
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            }
+        }
+
         function gameLoop(currentTime) {
+
             if (!gameRunning && !isGameEffectivelyPaused()) {
             } else if (!gameRunning && isGameEffectivelyPaused()) {
                 return;
@@ -3363,12 +3462,27 @@ body.player-downed {
             updateUI();
         };
 
+        
+        let bots = [];
+        let entities = [];
+        
         function startGame() {
+
             resetPauseState();
             applyTheme(storedTheme, { persist: false });
             document.body.classList.add('select-none');
             mainGameContent.classList.remove('hidden');
             player1 = new FoxPlayer(50, CANVAS_HEIGHT/2 - PLAYER_HEIGHT/2, "Ranger", { up:'KeyW',down:'KeyS',left:'KeyA',right:'KeyD',shoot:'Space',beam:'KeyB',smash:'KeyX' });
+            
+            bots = [];
+            entities = [player1];
+            
+            for (let i = 0; i < requestedBotCount; i++) {
+                let bot = new Bot(50 + (i * 50) - (requestedBotCount * 25), CANVAS_HEIGHT/2 - PLAYER_HEIGHT/2 + 50, "Ranger");
+                bots.push(bot);
+                entities.push(bot);
+            }
+
             setNextPowerupSpawnTime();
             setNextGreenHealthPackSpawnTime();
             setNextGoldenHealthPackSpawnTime();
