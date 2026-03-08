@@ -1031,9 +1031,9 @@ body.player-downed {
             <div id="changelogPopup" class="hidden">
                 <h2 class="popup-title changelog-title">Changelog</h2>
                 <div id="changelogContent">
-                    <p>6.7: Added pause countdown, drifting starfields, darker cosmic themes, and procedural obstacles. Universal integrity code is now 'redsnowadmin123'.</p>
+                    <p>6.7: Added pause countdown, drifting starfields, darker cosmic themes, and procedural obstacles. Universal integrity code has been updated.</p>
                     <p>6.6: Huge game redesign and renamed game to Strikr, Nathan became trusted tester, new codes, new everything, themes and more!</p>
-                    <p>6.5: Revive password changed to 'ultrasecretpasscode'.</p>
+                    <p>6.5: Revive password has been updated.</p>
                     <p>6.4: Added password protection to admin controls ('Invincibility', '+100 Health', 'Finish Game'). Admin access is now granted for the entire session after one successful login. Game version updated and title renamed to 'ShootyShooty BangBang Plus'.</p>
                     <p>6.2: fixed enemy health bar display. Added Green (+50HP) and Golden (+150HP) health power-ups cause duh. Enhanced particle effects for explosions and power-up collection. Screen shake on Smash & enemy death >:) </p>
                     <p>6.1: fixed GIP input issue with game control keys. beam attack now correctly uses sigma aimbot at the nearest enemy. refined bullet homing to prevent circling at close distance or whatever</p>
@@ -1094,6 +1094,14 @@ body.player-downed {
         while (angle > Math.PI) { angle -= 2 * Math.PI; }
         while (angle < -Math.PI) { angle += 2 * Math.PI; }
         return angle;
+    }
+
+    async function hashString(string) {
+        const msgUint8 = new TextEncoder().encode(string);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1483,7 +1491,11 @@ body.player-downed {
         let requestedBotCount = 0;
         // NEW: Admin Password State
         let pendingAdminAction = null;
-        const VALID_CODES = ["ilovenathan", "hoa", "admin"];
+        const VALID_CODES = [
+            "5de605bff76f3594cffe074cb8c15ee23e9149b952034d103c0ef64b1570c202", // "ilovenathan"
+            "e9c7f0b52df4abec57cd0bb78749fa1642ec63f8ad2c988c9bbeb5ce93407b06", // "hoa"
+            "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"  // "admin"
+        ];
         let isAdminAccessGranted = false; // <-- NEW: Tracks if admin is unlocked
 
         const messageBox = document.getElementById('messageBox');
@@ -1787,8 +1799,10 @@ body.player-downed {
             setTimeout(() => element.classList.add('hidden'), 500);
         }
 
-        submitLicenseKeyButton.addEventListener('click', () => {
-            if (VALID_CODES.includes(licenseKeyInput.value.trim())) {
+        submitLicenseKeyButton.addEventListener('click', async () => {
+            const inputCode = licenseKeyInput.value.trim();
+            const hashedInput = await hashString(inputCode);
+            if (VALID_CODES.includes(hashedInput)) {
                 licenseErrorText.classList.add('hidden');
                 licenseKeyInput.classList.remove('input-error');
                 hidePopup(licensePopup);
@@ -1979,8 +1993,10 @@ body.player-downed {
             currentPopupAction = null;
         });
 
-        submitAdminPasswordButton.addEventListener('click', () => {
-            if (VALID_CODES.includes(adminPasswordInput.value.trim())) {
+        submitAdminPasswordButton.addEventListener('click', async () => {
+            const inputCode = adminPasswordInput.value.trim();
+            const hashedInput = await hashString(inputCode);
+            if (VALID_CODES.includes(hashedInput)) {
                 isAdminAccessGranted = true; // <-- Grant access
                 hidePopup(adminPasswordPopup);
                 executeAdminAction(pendingAdminAction);
@@ -2043,10 +2059,11 @@ body.player-downed {
             currentPopupAction = null;
         });
 
-        submitCodeButton.addEventListener('click', () => {
+        submitCodeButton.addEventListener('click', async () => {
             const code = codeInput.value.trim().toLowerCase();
+            const hashedCode = await hashString(code);
             if (currentPopupAction === 'aimbot') {
-                if (code === "ultrasecretpassword") {
+                if (hashedCode === "114e5f1ed7e2eb054702941a31f6d2c7964ddb46a1df9abe6685c36b06bae2af") { // "ultrasecretpassword"
                     aimbotActive = true;
                     showTemporaryPopup("Aimbot Enabled!");
                 } else {
@@ -2054,7 +2071,7 @@ body.player-downed {
                 }
                 hidePopup(messageBox); currentPopupAction = null;
             } else if (currentPopupAction === 'revive_code_input') {
-                if (VALID_CODES.includes(code)) {
+                if (VALID_CODES.includes(hashedCode)) {
                     document.body.style.filter = '';
                     document.body.style.transform = '';
                     player1.reset(false);
