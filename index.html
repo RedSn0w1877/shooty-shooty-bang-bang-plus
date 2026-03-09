@@ -50,7 +50,7 @@ body::before,
 body::after {
     display: none;
 }
-body[data-theme="aurora"] {
+body[data-theme="red"] {
     --bg-gradient: radial-gradient(120% 120% at 50% 5%, rgba(112, 75, 217, 0.6), rgba(7, 12, 36, 0.96));
     --bg-overlay: linear-gradient(200deg, rgba(16, 22, 60, 0.85) 0%, rgba(4, 7, 24, 0.95) 55%, rgba(2, 4, 16, 0.98) 100%);
     --panel-bg: rgba(18, 26, 60, 0.72);
@@ -839,7 +839,7 @@ body.player-downed {
 }
 </style>
 </head>
-<body class="select-none" data-theme="aurora">
+<body class="select-none" data-theme="red">
     <div id="gradientOverlay" class="gradient-overlay"></div>
     <canvas id="backgroundCanvas" class="cosmic-background"></canvas>
     <div id="lightingOverlay" class="lighting-overlay"></div>
@@ -924,36 +924,48 @@ body.player-downed {
                 <div class="theme-panel">
                     <div class="theme-panel__label">
                         <span class="label-title">Theme</span>
-                        <span class="label-value" id="activeThemeName">Aurora</span>
+                        <span class="label-value" id="activeThemeName">Red</span>
                     </div>
                     <div class="theme-card-grid">
-                        <button class="theme-card theme-aurora active" type="button" data-theme-option="aurora">
+                        <button class="theme-card theme-red active" type="button" data-theme-option="red">
                             <span class="theme-card__swatch"></span>
-                            <span>Aurora</span>
+                            <span>Red</span>
                         </button>
-                        <button class="theme-card theme-supernova" type="button" data-theme-option="supernova">
+                        <button class="theme-card theme-midnight-red" type="button" data-theme-option="midnight-red">
                             <span class="theme-card__swatch"></span>
-                            <span>Supernova</span>
+                            <span>Midnight Red</span>
                         </button>
-                        <button class="theme-card theme-nebula" type="button" data-theme-option="nebula">
+                        <button class="theme-card theme-orange" type="button" data-theme-option="orange">
                             <span class="theme-card__swatch"></span>
-                            <span>Nebula Drift</span>
+                            <span>Orange</span>
                         </button>
-                        <button class="theme-card theme-oasis" type="button" data-theme-option="oasis">
+                        <button class="theme-card theme-midnight-orange" type="button" data-theme-option="midnight-orange">
                             <span class="theme-card__swatch"></span>
-                            <span>Solar Oasis</span>
+                            <span>Midnight Orange</span>
                         </button>
-                        <button class="theme-card theme-nocturne" type="button" data-theme-option="nocturne">
+                        <button class="theme-card theme-yellow" type="button" data-theme-option="yellow">
                             <span class="theme-card__swatch"></span>
-                            <span>Nocturne Bloom</span>
+                            <span>Yellow</span>
                         </button>
-                        <button class="theme-card theme-abyss" type="button" data-theme-option="abyss">
+                        <button class="theme-card theme-green" type="button" data-theme-option="green">
                             <span class="theme-card__swatch"></span>
-                            <span>Abyssal Veil</span>
+                            <span>Green</span>
                         </button>
-                        <button class="theme-card theme-midnight" type="button" data-theme-option="midnight">
+                        <button class="theme-card theme-blue" type="button" data-theme-option="blue">
                             <span class="theme-card__swatch"></span>
-                            <span>Midnight Prism</span>
+                            <span>Blue</span>
+                        </button>
+                        <button class="theme-card theme-midnight-blue" type="button" data-theme-option="midnight-blue">
+                            <span class="theme-card__swatch"></span>
+                            <span>Midnight Blue</span>
+                        </button>
+                        <button class="theme-card theme-purple" type="button" data-theme-option="purple">
+                            <span class="theme-card__swatch"></span>
+                            <span>Purple</span>
+                        </button>
+                        <button class="theme-card theme-black" type="button" data-theme-option="black">
+                            <span class="theme-card__swatch"></span>
+                            <span>Black</span>
                         </button>
                     </div>
                 </div>
@@ -1105,6 +1117,7 @@ body.player-downed {
     const entityLayer = new PIXI.Container();
     const uiLayer = new PIXI.Container();
 
+    let pixiStars = [];
     pixiApp.stage.addChild(bgLayer);
     pixiApp.stage.addChild(effectLayer);
     pixiApp.stage.addChild(entityLayer);
@@ -1248,100 +1261,129 @@ body.player-downed {
             return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
 
+
         function refreshStarPalette() {
-            if (!backgroundCtx) { return; }
+            if (!document.body) { return; }
             const styles = getComputedStyle(document.body);
-            starPalette = [
-                parseCssColor(styles.getPropertyValue('--star-primary')),
-                parseCssColor(styles.getPropertyValue('--star-secondary')),
-                parseCssColor(styles.getPropertyValue('--star-tertiary'))
-            ];
-            const accentStrong = styles.getPropertyValue('--accent-strong') || styles.getPropertyValue('--accent');
-            const panelColor = styles.getPropertyValue('--panel-bg') || 'rgba(4, 7, 24, 0.92)';
-            lightColor = convertColorWithAlpha(accentStrong || 'rgba(139, 92, 246, 1)', 0.55);
-            lightFalloffColor = convertColorWithAlpha(panelColor, 0.92);
+            const p = styles.getPropertyValue('--star-primary').trim() || 'rgba(255, 255, 255, 0.9)';
+            const s = styles.getPropertyValue('--star-secondary').trim() || 'rgba(180, 200, 255, 0.8)';
+            const t = styles.getPropertyValue('--star-tertiary').trim() || 'rgba(200, 180, 255, 0.7)';
+
+            // Helper to convert rgba string to hex number for Pixi tint
+            function rgbaToHex(rgbaStr) {
+                const parts = rgbaStr.match(/\d+/g);
+                if (parts && parts.length >= 3) {
+                    return (parseInt(parts[0]) << 16) + (parseInt(parts[1]) << 8) + parseInt(parts[2]);
+                }
+                return 0xFFFFFF; // Fallback
+            }
+
+            const pColor = rgbaToHex(p);
+            const sColor = rgbaToHex(s);
+            const tColor = rgbaToHex(t);
+
+            starPalette = [pColor, sColor, tColor];
+
+            // Apply new colors to existing stars
+            if (pixiStars && pixiStars.length > 0) {
+                pixiStars.forEach(star => {
+                    if (star.sprite) {
+                        star.sprite.tint = starPalette[star.paletteIndex % starPalette.length];
+                    }
+                });
+            }
         }
 
-        function resizeBackgroundCanvas() {
-            if (!backgroundCanvas) { return; }
-            backgroundCanvas.width = window.innerWidth;
-            backgroundCanvas.height = window.innerHeight;
-        }
+function initStarfield() {
+            if (!pixiApp) return;
 
-        function initStarfield() {
-            if (!backgroundCanvas || !backgroundCtx) { return; }
-            const width = backgroundCanvas.width;
-            const height = backgroundCanvas.height;
+            // Remove old container if it exists
+            if (starContainer) {
+                pixiApp.stage.removeChild(starContainer);
+                starContainer.destroy({ children: true });
+            }
+
+            starContainer = new PIXI.Container();
+            // Ensure stars render behind everything else
+            pixiApp.stage.addChildAt(starContainer, 0);
+
+            const width = pixiApp.screen.width;
+            const height = pixiApp.screen.height;
+
             const layerConfigs = [
                 { count: Math.max(60, Math.floor(width / 18)), speed: 0.015, size: [0.75, 1.6], drift: 0.018 },
                 { count: Math.max(45, Math.floor(width / 22)), speed: 0.025, size: [1.0, 2.2], drift: 0.03 },
                 { count: Math.max(30, Math.floor(width / 28)), speed: 0.04, size: [1.4, 2.9], drift: 0.045 }
             ];
-            stars = [];
+
+            pixiStars = [];
+
             layerConfigs.forEach((config, layerIndex) => {
                 for (let i = 0; i < config.count; i++) {
                     const size = config.size[0] + Math.random() * (config.size[1] - config.size[0]);
-                    stars.push({
-                        x: Math.random() * width,
-                        y: Math.random() * height,
-                        size,
+
+                    // Create star graphic
+                    const starGfx = new PIXI.Graphics();
+                    starGfx.beginFill(0xFFFFFF); // Base white, we'll tint it
+                    starGfx.drawCircle(0, 0, size);
+                    starGfx.endFill();
+
+                    starGfx.x = Math.random() * width;
+                    starGfx.y = Math.random() * height;
+
+                    // Add blend mode for glow effect
+                    starGfx.blendMode = PIXI.BLEND_MODES.ADD;
+
+                    const starData = {
+                        sprite: starGfx,
                         speed: config.speed * (0.6 + Math.random() * 0.8),
                         drift: config.drift * (Math.random() * 0.6 + 0.4) * (Math.random() < 0.5 ? -1 : 1),
                         twinkleSpeed: 0.001 + Math.random() * 0.0012,
                         twinklePhase: Math.random() * Math.PI * 2,
                         baseAlpha: 0.4 + Math.random() * 0.45,
-                        paletteIndex: (layerIndex + i) % starPalette.length
-                    });
+                        paletteIndex: (layerIndex + i) % (starPalette.length || 1),
+                        size: size
+                    };
+
+                    starContainer.addChild(starGfx);
+                    pixiStars.push(starData);
                 }
             });
-            lastStarTimestamp = 0;
+
+            refreshStarPalette();
         }
 
-        function animateStarfield(timestamp) {
-            if (!backgroundCtx || !backgroundCanvas) { return; }
-            if (!lastStarTimestamp) { lastStarTimestamp = timestamp; }
-            const delta = Math.min(50, timestamp - lastStarTimestamp);
-            lastStarTimestamp = timestamp;
+        function animateStarfield() {
+            if (!pixiApp || !starContainer) return;
 
-            const width = backgroundCanvas.width || window.innerWidth;
-            const height = backgroundCanvas.height || window.innerHeight;
-            backgroundCtx.clearRect(0, 0, width, height);
-            backgroundCtx.save();
-            backgroundCtx.globalCompositeOperation = 'lighter';
+            // We use pixiApp.ticker's delta time, assuming 60FPS (~16.6ms per frame)
+            const deltaMs = pixiApp.ticker.deltaMS || 16.6;
+            const width = pixiApp.screen.width;
+            const height = pixiApp.screen.height;
+            const time = performance.now();
 
-            stars.forEach(star => {
-                star.y += star.speed * delta;
-                star.x += star.drift * delta;
-                if (star.y > height + star.size) {
-                    star.y = -star.size;
-                    star.x = Math.random() * width;
+            pixiStars.forEach(star => {
+                star.sprite.y += star.speed * deltaMs;
+                star.sprite.x += star.drift * deltaMs;
+
+                if (star.sprite.y > height + star.size) {
+                    star.sprite.y = -star.size;
+                    star.sprite.x = Math.random() * width;
                 }
-                if (star.x > width + star.size) { star.x = -star.size; }
-                if (star.x < -star.size) { star.x = width + star.size; }
-                star.twinklePhase += star.twinkleSpeed * delta;
-                const twinkle = 0.6 + 0.4 * Math.sin(star.twinklePhase);
-                const paletteColor = starPalette[star.paletteIndex % starPalette.length] || fallbackStarColor;
-                const alpha = Math.min(1, Math.max(0.2, star.baseAlpha * twinkle));
-                backgroundCtx.fillStyle = `rgba(${paletteColor.r}, ${paletteColor.g}, ${paletteColor.b}, ${alpha})`;
-                backgroundCtx.beginPath();
-                backgroundCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                backgroundCtx.fill();
-            });
+                if (star.sprite.x > width + star.size) { star.sprite.x = -star.size; }
+                if (star.sprite.x < -star.size) { star.sprite.x = width + star.size; }
 
-            backgroundCtx.restore();
-            requestAnimationFrame(animateStarfield);
+                // Twinkle
+                const alphaMod = Math.sin(time * star.twinkleSpeed + star.twinklePhase) * 0.2 + 0.8;
+                star.sprite.alpha = star.baseAlpha * alphaMod;
+            });
         }
 
         function ensureStarfieldAnimation() {
-            if (!backgroundCtx || starfieldAnimationActive) { return; }
-            starfieldAnimationActive = true;
-            requestAnimationFrame(ts => {
-                lastStarTimestamp = ts;
-                animateStarfield(ts);
-            });
+            // Replaced by Pixi ticker
         }
 
-        function updateCanvasRect(force = false) {
+function updateCanvasRect(force = false) {
             const now = performance.now();
             if (!force && now - lastCanvasRectSample < 250) { return; }
             canvasRect = canvas.getBoundingClientRect();
@@ -1385,35 +1427,34 @@ body.player-downed {
         }
 
         window.addEventListener('resize', () => {
-            resizeBackgroundCanvas();
-            initStarfield();
+
             updateCanvasRect(true);
             updateDynamicLighting(true);
         });
 
-        resizeBackgroundCanvas();
-        initStarfield();
+
         ensureStarfieldAnimation();
 
         const themeCards = document.querySelectorAll('[data-theme-option]');
         const activeThemeName = document.getElementById('activeThemeName');
         const themeNames = {
-            aurora: 'Aurora',
-            supernova: 'Supernova',
-            nebula: 'Nebula Drift',
-            oasis: 'Solar Oasis',
-            nocturne: 'Nocturne Bloom',
-            abyss: 'Abyssal Veil',
-            midnight: 'Midnight Prism',
-            endless: 'Endless Drift',
-            inferno: 'Inferno'
+            red: 'Red',
+            'midnight-red': 'Midnight Red',
+            orange: 'Orange',
+            'midnight-orange': 'Midnight Orange',
+            yellow: 'Yellow',
+            green: 'Green',
+            blue: 'Blue',
+            'midnight-blue': 'Midnight Blue',
+            purple: 'Purple',
+            black: 'Black'
         };
-        let storedTheme = localStorage.getItem('ssbb_theme') || 'aurora';
+        let storedTheme = localStorage.getItem('ssbb_theme') || 'red';
         let activeTheme = storedTheme;
 
         function applyTheme(theme, { persist = true, fromMode = false } = {}) {
             if (!themeNames[theme]) {
-                theme = 'aurora';
+                theme = 'red';
             }
             document.body.dataset.theme = theme;
             activeTheme = theme;
@@ -1494,7 +1535,7 @@ body.player-downed {
         let gameTargets = [];
         let enemyProjectiles = [];
         let powerUps = [];
-        let obstacles = [];
+
         let playerScore = 0;
         let mouseAimActive = false;
         let mouseShootActive = false;
@@ -3310,19 +3351,6 @@ class Bot extends FoxPlayer {
         let lastFrameTime = 0;
 
         
-        function generateObstacles() {
-            let obs = [];
-            // Assuming 5 random obstacles
-            for(let i=0; i<5; i++) {
-                obs.push({
-                    x: Math.random() * (CANVAS_WIDTH - 100),
-                    y: Math.random() * (CANVAS_HEIGHT - 100),
-                    width: 50 + Math.random() * 100,
-                    height: 50 + Math.random() * 100
-                });
-            }
-            return obs;
-        }
 
         function spawnTargets(count, isInitialSpawn = true) {
 
@@ -3351,26 +3379,6 @@ class Bot extends FoxPlayer {
         function initializeStage(stage, wave) {
             resetPauseState();
             currentStage = stage; currentWave = wave; gameTargets = []; enemyProjectiles = []; powerUps = [];
-            if (wave === 1 || obstacles.length === 0) {
-                obstacles = [];
-                for(let i=0; i<5; i++) {
-                    obstacles.push({
-                        x: Math.random() * (CANVAS_WIDTH - 100),
-                        y: Math.random() * (CANVAS_HEIGHT - 100),
-                        width: 50 + Math.random() * 100,
-                        height: 50 + Math.random() * 100
-                    });
-                }
-            }
-            function ensureEntityOutsideObstacles(entity) {
-            for (let obs of obstacles) {
-                if (entity.x < obs.x + obs.width && entity.x + (entity.width||entity.size) > obs.x &&
-                    entity.y < obs.y + obs.height && entity.y + (entity.height||entity.size) > obs.y) {
-                    entity.x = obs.x - (entity.width||entity.size) - 5;
-                }
-            }
-        }
-        ensureEntityOutsideObstacles(player1);
             if (gameMode === 'endless' || gameMode === 'hell') { stageDisplay.textContent = `${gameMode.charAt(0).toUpperCase() + gameMode.slice(1)} Mode: Wave ${wave}`; }
             else { stageDisplay.textContent = `Stage ${stage}: Wave ${wave}`; }
 
@@ -3385,16 +3393,6 @@ class Bot extends FoxPlayer {
             if (gameMode === 'hell') { setNextHellSpawnTime(); } updateUI();
         };
 
-        
-        function ensureEntityOutsideObstacles(entity) {
-            // Check collisions and bump them out
-            for (let obs of obstacles) {
-                if (entity.x < obs.x + obs.width && entity.x + (entity.width||entity.size) > obs.x &&
-                    entity.y < obs.y + obs.height && entity.y + (entity.height||entity.size) > obs.y) {
-                    entity.x = obs.x - (entity.width||entity.size) - 5;
-                }
-            }
-        }
         
         function setNextPowerupSpawnTime() {
 
