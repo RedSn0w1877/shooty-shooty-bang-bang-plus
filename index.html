@@ -1111,20 +1111,19 @@ body.player-downed {
     pixiApp.stage.addChild(uiLayer);
 
     document.addEventListener('DOMContentLoaded', () => {
-        const gameContainer = document.querySelector('.game-container');
+        const canvasWrapper = document.querySelector('.canvas-wrapper');
         const oldCanvas = document.getElementById('gameCanvas');
-        if (oldCanvas && oldCanvas.parentNode === gameContainer) {
-            gameContainer.replaceChild(pixiApp.view, oldCanvas);
-        } else if (gameContainer) {
-            gameContainer.appendChild(pixiApp.view);
+        if (oldCanvas && canvasWrapper) {
+            canvasWrapper.replaceChild(pixiApp.view, oldCanvas);
+        } else if (canvasWrapper) {
+            canvasWrapper.appendChild(pixiApp.view);
         }
         pixiApp.view.id = 'gameCanvas';
-        pixiApp.view.style.position = 'absolute';
-        pixiApp.view.style.top = '0';
-        pixiApp.view.style.left = '0';
+        pixiApp.view.style.position = 'relative';
         pixiApp.view.style.width = '100%';
         pixiApp.view.style.height = '100%';
         pixiApp.view.style.zIndex = '1';
+        pixiApp.view.style.display = 'block';
 
         const canvas = pixiApp.view;
 
@@ -1482,6 +1481,7 @@ body.player-downed {
         const HELL_MODE_SPAWN_INTERVAL = 1200;
         const HELL_MODE_EXTRA_SPAWN_COUNT = 2;
         const REVIVE_INVULNERABILITY_DURATION = 3000;
+        const REVIVE_TIME = 3000;
 
         let gameRunning = false;
         let gamePaused = false;
@@ -3263,8 +3263,11 @@ class Bot extends FoxPlayer {
 
                           if (this.revivingTarget.isPlayer) {
                               document.body.classList.remove('player-downed');
-                              downedOverlay.classList.remove('active');
-                              setTimeout(() => downedOverlay.classList.add('hidden'), 300);
+                              const overlay = document.getElementById("downedOverlay");
+                              if (overlay) {
+                                  overlay.classList.remove('active');
+                                  setTimeout(() => overlay.classList.add('hidden'), 300);
+                              }
                               showTemporaryPopup("You were revived by a bot!");
                           }
 
@@ -3619,7 +3622,6 @@ class Bot extends FoxPlayer {
                 enemyProjectiles.forEach((ep,i) => { ep.update(dT); });
                 powerUps.forEach((pu,i) => { if (pu.update(dT)) { pu.destroy(); powerUps.splice(i,1); } });
                 checkCollisions();
-                animateStarfield(dT);
             }
 
             updateAndDrawParticles(dT);
@@ -3674,8 +3676,7 @@ class Bot extends FoxPlayer {
             newWidth = Math.max(320, Math.min(newWidth, 2560));
             newHeight = Math.max(180, Math.min(newHeight, 1440));
 
-            canvas.width = newWidth;
-            canvas.height = newHeight;
+            pixiApp.renderer.resize(newWidth, newHeight);
             CANVAS_WIDTH = newWidth;
             CANVAS_HEIGHT = newHeight;
 
